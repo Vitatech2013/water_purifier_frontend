@@ -1,10 +1,10 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
-import 'dart:convert';
+import 'package:water_purifier/app/modules/service/models/service_response.dart'; // Ensure correct import path
 
 class AddEditServiceController extends GetxController {
   final serviceNameController = TextEditingController();
@@ -13,18 +13,20 @@ class AddEditServiceController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   RxString serviceId = ''.obs; // To store the service ID if editing
-  Rx<File?> selectedImage = Rx<File?>(null); // For image upload
-  RxString initialImage = ''.obs; // Initial image URL
 
   @override
   void onInit() {
     super.onInit();
-    final Map<String, dynamic> service = Get.arguments ?? {};
-    serviceId.value = service['_id'] ?? '';
-    serviceNameController.text = service['name'] ?? '';
-    serviceDescriptionController.text = service['description'] ?? '';
-    servicePriceController.text = service['price']?.toString() ?? '';
-    initialImage.value = service['image'] ?? '';
+    final dynamic service = Get.arguments;
+
+    if (service is ServiceResponse) {
+      serviceId.value = service.id;
+      serviceNameController.text = service.name;
+      serviceDescriptionController.text = service.description;
+      servicePriceController.text = service.price.toString();
+    } else {
+      print('Unexpected type for Get.arguments: ${service.runtimeType}');
+    }
   }
 
   Future<void> saveService() async {
@@ -43,7 +45,7 @@ class AddEditServiceController extends GetxController {
           'price': servicePriceController.text,
         });
 
-        // Handle image upload in multipart request if an image is selected
+        // Create and configure the request
         var request = isUpdating
             ? http.Request('PUT', Uri.parse(url))
             : http.Request('POST', Uri.parse(url));
@@ -51,10 +53,10 @@ class AddEditServiceController extends GetxController {
         request.headers.addAll(headers);
         request.body = body;
 
-        // Send the request and handle response
+        // Send the request and handle the response
         http.StreamedResponse response = await request.send();
 
-        if (response.statusCode == 200||response.statusCode == 201) {
+        if (response.statusCode == 200 || response.statusCode == 201) {
           var responseData = await response.stream.bytesToString();
           var jsonResponse = json.decode(responseData);
           print(jsonResponse['message']);

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
@@ -7,11 +8,12 @@ import 'package:water_purifier/app/modules/sale/models/sales_response.dart';
 import 'package:water_purifier/app/modules/service/models/service_response.dart';
 
 class SaleController extends GetxController {
-  var salesList = <Record>[].obs;
-  var products = <Datum>[].obs;
-  var services = <ServiceResponse>[].obs;
   var isLoading = true.obs;
-
+  var salesList = <Record>[].obs;
+  var productList = <Datum>[].obs;
+  var serviceList = <ServiceResponse>[].obs;
+  final isEditing = false.obs;
+  var addedServiceIds = <String>[].obs;
   Future<void> fetchSales() async {
     try {
       isLoading(true);
@@ -19,14 +21,14 @@ class SaleController extends GetxController {
       if (response.statusCode == 200) {
         var jsonData = jsonDecode(response.body);
         SalesResponse salesResponse = SalesResponse.fromJson(jsonData);
-
-        // Assign fetched data to the observable list
+        isEditing.value = false;
         salesList.assignAll(salesResponse.data);
       } else {
         print(response.body.toString());
       }
-    } catch (e) {
-      Get.snackbar('Error', 'An error occurred while fetching sales');
+    } catch (e,s) {
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: s);
     } finally {
       isLoading(false);
     }
@@ -45,8 +47,7 @@ class SaleController extends GetxController {
         if (decodedData is Map<String, dynamic>) {
           final productResponse = ProductResponse.fromJson(decodedData);
           if (productResponse.data.isNotEmpty) {
-            products.value = productResponse.data;  // Assigning the list of Datum
-            // isEditing.value = false;
+            productList.value = productResponse.data;
           } else {
             print('No products found.');
           }
@@ -72,7 +73,7 @@ class SaleController extends GetxController {
 
         if (responseData is Map<String, dynamic> && responseData['status'] == 1) {
           final List<dynamic> servicesData = responseData['data'];
-          services.value = servicesData.map((serviceJson) => ServiceResponse.fromJson(serviceJson as Map<String, dynamic>)).toList();
+          serviceList.value = servicesData.map((serviceJson) => ServiceResponse.fromJson(serviceJson as Map<String, dynamic>)).toList();
         } else {
           print('Unexpected response format or status');
         }
@@ -85,9 +86,93 @@ class SaleController extends GetxController {
       isLoading.value = false;
     }
   }
+  Future<void> saveSale({required String name,required String mobile,required String productId,}) async {
+      try {
+        const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
+        var headers = {
+          'Content-Type': 'application/json',
+        };
+
+        var body = json.encode({
+          "name": name,
+          "mobile": mobile,
+          "productId": productId,
+          "saleDate": DateTime.now().toIso8601String()
+        });
+
+        var request = http.Request('POST', Uri.parse(url));
+        request.body = body;
+        request.headers.addAll(headers);
+
+        http.StreamedResponse response = await request.send();
+
+        if (response.statusCode == 201||response.statusCode==200) {
+          print('Sale added successfully');
+          isEditing.value=true;
+          print(await response.stream.bytesToString());
+          Future.delayed(3.seconds).whenComplete(()=>
+              saleEdited()
+          );
+        } else {
+          print('Failed to add sale');
+          print(response.reasonPhrase);
+        }
+      } catch (e) {
+        print('Error occurred: $e');
+      }
+  }
+  Future<void> postService({
+    required String saleId,
+    required String productId,
+    required String serviceTypeId,
+    required double servicePrice,
+  }) async {
+    const String apiUrl = '${AppURL.appBaseUrl}/api/sale/addservice';
+    final headers = {
+      'Content-Type': 'application/json',
+    };
+
+    final body = json.encode({
+      'saleId': saleId,
+      'productId': productId,
+      'serviceTypeId': serviceTypeId,
+      'serviceDate': DateTime.now().toIso8601String(),
+      'servicePrice': servicePrice,
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('Response: ${response.body}');
+        addedServiceIds.add(serviceTypeId);
+        isEditing.value=true;
+        Future.delayed(3.seconds).whenComplete(()=>
+            saleEdited()
+        );
+      } else {
+        print('Error: ${response.reasonPhrase}');
+        print('Error: ${response.body}');
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception: $e');
+    }
+  }
+  void saleEdited(){
+    fetchSales();
+    fetchServices();
+    isEditing.value=false;
+  }
   @override
   void onInit() {
     fetchSales();
+    fetchProducts();
+    fetchServices();
     super.onInit();
   }
 }

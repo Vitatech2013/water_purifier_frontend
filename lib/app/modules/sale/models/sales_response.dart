@@ -3,7 +3,11 @@ class SalesResponse {
   final String message;
   final List<Record> data;
 
-  SalesResponse({required this.status, required this.message, required this.data});
+  SalesResponse({
+    required this.status,
+    required this.message,
+    required this.data,
+  });
 
   factory SalesResponse.fromJson(Map<String, dynamic> json) {
     return SalesResponse(
@@ -15,16 +19,17 @@ class SalesResponse {
     );
   }
 }
+
 class Record {
   final String id;
-  final User user;
+  final User? user;
   final List<Product> products;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   Record({
     required this.id,
-    required this.user,
+    this.user,
     required this.products,
     required this.createdAt,
     required this.updatedAt,
@@ -33,7 +38,7 @@ class Record {
   factory Record.fromJson(Map<String, dynamic> json) {
     return Record(
       id: json['_id'],
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
+      user: json['user'] != null ? User.fromJson(json['user']) : null,
       products: (json['products'] as List<dynamic>)
           .map((item) => Product.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -43,16 +48,15 @@ class Record {
   }
 }
 
-
 class Product {
-  final Map<String, dynamic>? product;
+  final ProductDetails? product;
   final DateTime saleDate;
   final DateTime warrantyExpiry;
   final String id;
   final List<Service> services;
 
   Product({
-    required this.product,
+    this.product,
     required this.saleDate,
     required this.warrantyExpiry,
     required this.id,
@@ -61,7 +65,7 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      product: json['product'] as Map<String, dynamic>?,
+      product: json['product'] != null ? ProductDetails.fromJson(json['product']) : null,
       saleDate: DateTime.parse(json['saleDate']),
       warrantyExpiry: DateTime.parse(json['warrantyExpiry']),
       id: json['_id'],
@@ -72,9 +76,43 @@ class Product {
   }
 }
 
+class ProductDetails {
+  final String id;
+  final String productName;
+  final double productPrice;
+  final String productImg;
+  final String warranty;
+  final String description;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ProductDetails({
+    required this.id,
+    required this.productName,
+    required this.productPrice,
+    required this.productImg,
+    required this.warranty,
+    required this.description,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ProductDetails.fromJson(Map<String, dynamic> json) {
+    return ProductDetails(
+      id: json['_id'],
+      productName: json['productName'],
+      productPrice: json['productPrice'].toDouble(),
+      productImg: json['productImg'],
+      warranty: json['warranty'],
+      description: json['description'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
+}
 
 class Service {
-  final String serviceType;
+  final ServiceType serviceType;
   final DateTime serviceDate;
   final double servicePrice;
   final String id;
@@ -88,7 +126,7 @@ class Service {
 
   factory Service.fromJson(Map<String, dynamic> json) {
     return Service(
-      serviceType: json['serviceType'],
+      serviceType: ServiceType.fromJson(json['serviceType'] as Map<String, dynamic>),
       serviceDate: DateTime.parse(json['serviceDate']),
       servicePrice: json['servicePrice'].toDouble(),
       id: json['_id'],
@@ -96,21 +134,45 @@ class Service {
   }
 }
 
+class ServiceType {
+  final String id;
+  final String name;
+  final String description;
+  final double price;
+
+  ServiceType({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.price,
+  });
+
+  factory ServiceType.fromJson(Map<String, dynamic> json) {
+    return ServiceType(
+      id: json['_id'],
+      name: json['name'],
+      description: json['description'],
+      price: json['price'].toDouble(),
+    );
+  }
+}
 
 class User {
+  final String id;
   final String name;
   final String mobile;
 
   User({
+    required this.id,
     required this.name,
     required this.mobile,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
+      id: json['_id'],
       name: json['name'],
       mobile: json['mobile'],
     );
   }
 }
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:water_purifier/app/modules/add_edit_sale/controllers/add_edit_sale_controller.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
+import 'package:water_purifier/app/routes/app_pages.dart';
 
 class AddEditSaleView extends GetView<AddEditSaleController> {
   const AddEditSaleView({super.key});
@@ -10,8 +11,20 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add/Edit Sale'),
-        centerTitle: true,
+        leading: IconButton(
+            onPressed: () {
+              Get.toNamed(Routes.SALE);
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            )),
+        title: const Text(
+          'Add Sales',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -43,24 +56,14 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                     onChanged: controller.selectProduct,
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text('Sale Date:'),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () => controller.selectSaleDate(context),
-                        child: const Text('Select Date'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text('Selected Date: ${controller.selectedDate.value.toLocal()}'),
-                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
                       controller.saveSale();
                     },
-                    child: const Text('Save Sale'),
+                    child: const Text(
+                      'Save Sale',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
@@ -89,8 +92,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
       ),
       maxLines: maxLines,
       keyboardType: keyboardType,
-      validator: (value) =>
-      value!.isEmpty ? 'This field is required' : null,
+      validator: (value) => value!.isEmpty ? 'This field is required' : null,
     );
   }
 
@@ -115,7 +117,6 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
           groupValue: groupValue,
           onChanged: (value) {
             onChanged(value);
-            // Ensure that selectedProductId is updated
             controller.selectedProductId.value = item.id;
           },
         );

@@ -58,7 +58,7 @@ class HomeView extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 20), // Space between rows
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         buildCard(
                           width,
@@ -66,13 +66,6 @@ class HomeView extends GetView<HomeController> {
                           'Sales',
                           "assets/salespng.png",
                           "Sales",
-                        ),
-                        buildCard(
-                          width,
-                          height,
-                          'All',
-                          "assets/productpng.png",
-                          "All",
                         ),
                       ],
                     ),
@@ -106,9 +99,6 @@ class HomeView extends GetView<HomeController> {
         } else if (navigateTo == "Sales") {
           print("Navigating to Sales");
           Get.toNamed(Routes.SALE);
-        } else if (navigateTo == "All") {
-          print("Navigating to All");
-          Get.toNamed(Routes.SERVICE);
         } else {
           print("Unknown navigation target: $navigateTo");
         }

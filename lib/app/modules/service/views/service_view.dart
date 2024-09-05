@@ -13,9 +13,20 @@ class ServiceView extends GetView<ServiceController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Service Management'),
-        backgroundColor: colorScheme.primary,
-        elevation: 4.0,
+        leading: IconButton(
+            onPressed: () {
+              Get.toNamed(Routes.HOME);
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            )),
+        title: const Text(
+          'Services Management',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.blue,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {

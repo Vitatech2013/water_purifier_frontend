@@ -16,15 +16,20 @@ class ProductView extends GetView<ProductController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Management'),
-        backgroundColor: colorScheme.primary,
-        elevation: 2.0,
         leading: IconButton(
-          onPressed: () {
-            Get.toNamed(Routes.HOME);
-          },
-          icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Get.toNamed(Routes.HOME);
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            )),
+        title: const Text(
+          'Products Management',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.blue,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
