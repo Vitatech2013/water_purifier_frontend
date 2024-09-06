@@ -29,12 +29,8 @@ class ProductController extends GetxController {
 
         if (decodedData is Map<String, dynamic>) {
           final productResponse = ProductResponse.fromJson(decodedData);
-          if (productResponse.data.isNotEmpty) {
-            products.value = productResponse.data;  // Assigning the list of Datum
-            isEditing.value = false;
-          } else {
-            print('No products found.');
-          }
+          products.value = productResponse.data;
+          isEditing.value = false;
         } else {
           print('Unexpected response format: ${decodedData.runtimeType}');
         }
@@ -45,6 +41,7 @@ class ProductController extends GetxController {
       print('Error occurred: $e');
     } finally {
       isLoading.value = false;
+      isEditing.value = false;
     }
   }
 
@@ -52,17 +49,24 @@ class ProductController extends GetxController {
     isEditing.value = false;
     fetchProducts();
   }
+  void fetchingProducts(){
+    isEditing.value=true;
+    Future.delayed(const Duration(seconds: 1)).then((_) => fetchProducts());
+  }
 
   Future<void> deleteProduct(String productId) async {
     try {
-      var request = http.Request('DELETE', Uri.parse('${AppURL.appBaseUrl}${AppURL.deleteProduct}$productId'));
 
+
+      var request = http.Request('DELETE', Uri.parse('${AppURL.appBaseUrl}${AppURL.deleteProduct}$productId'));
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
         print('Product deleted successfully');
         isEditing.value = true;
-        Future.delayed(3.seconds).then((value) => deletingProduct());
+        Future.delayed(const Duration(seconds: 1)).then((_) => deletingProduct());
+        products.value = products.where((product) => product.id != productId).toList();
+        products.refresh();
       } else {
         print('Failed to delete product: ${response.reasonPhrase}');
       }

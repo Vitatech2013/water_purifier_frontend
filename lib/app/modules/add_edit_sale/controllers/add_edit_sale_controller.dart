@@ -25,6 +25,11 @@ class AddEditSaleController extends GetxController {
 
   Rx<DateTime> selectedDate = DateTime.now().obs;
 
+  // Error messages
+  RxString nameError = ''.obs;
+  RxString mobileNumberError = ''.obs;
+  RxString productError = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -33,12 +38,28 @@ class AddEditSaleController extends GetxController {
     nameController.text = sale['name'] ?? '';
     mobileNumberController.text = sale['mobileNumber'] ?? '';
     fetchProducts();
+
+    nameController.addListener(_validateName);
+    mobileNumberController.addListener(_validateMobileNumber);
   }
 
-  void selectProduct(String? value) {
-    selectedProduct.value = value ?? '';
-    selectedProductId.value =
-        products.firstWhere((product) => product.productName == value).id;
+  void _validateName() {
+    nameError.value = nameController.text.isEmpty
+        ? 'Name is required'
+        : '';
+  }
+
+  void _validateMobileNumber() {
+    final pattern = RegExp(r'^[6-9]\d{9}$');
+    mobileNumberError.value = !pattern.hasMatch(mobileNumberController.text)
+        ? 'Please enter a valid Indian mobile number'
+        : '';
+  }
+
+  void validateFields() {
+    _validateName();
+    _validateMobileNumber();
+    productError.value = selectedProductId.value == null ? 'Please select a product' : '';
   }
 
   Future<void> selectSaleDate(BuildContext context) async {
@@ -73,12 +94,12 @@ class AddEditSaleController extends GetxController {
   }
 
   Future<void> saveSale() async {
-    if (formKey.currentState!.validate() && selectedProductId.value != null) {
-      if (!_isValidIndianMobileNumber(mobileNumberController.text)) {
-        Get.snackbar('Error', 'Please enter a valid Indian mobile number');
-        return;
-      }
+    validateFields();
 
+    if (nameError.value.isEmpty &&
+        mobileNumberError.value.isEmpty &&
+        productError.value.isEmpty &&
+        selectedProductId.value != null) {
       try {
         const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
         var headers = {'Content-Type': 'application/json'};
@@ -105,16 +126,13 @@ class AddEditSaleController extends GetxController {
         } else {
           print('Failed to add sale');
           print(response.reasonPhrase);
+          print(response.statusCode);
         }
       } catch (e) {
         print('Error occurred: $e');
       }
     } else {
-      if (selectedProductId.value == null) {
-        Get.snackbar('Error', 'Please select a product');
-      } else {
-        print('Form validation failed');
-      }
+      print('Form validation failed');
     }
   }
 

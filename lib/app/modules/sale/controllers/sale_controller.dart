@@ -116,6 +116,7 @@ class SaleController extends GetxController {
         } else {
           print('Failed to add sale');
           print(response.reasonPhrase);
+          print(response.statusCode);
         }
       } catch (e) {
         print('Error occurred: $e');

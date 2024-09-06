@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
-import 'package:water_purifier/app/modules/service/models/service_response.dart'; // Ensure correct import path
+import 'package:water_purifier/app/modules/service/models/service_response.dart';
 
 class AddEditServiceController extends GetxController {
   final serviceNameController = TextEditingController();
@@ -13,6 +13,11 @@ class AddEditServiceController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   RxString serviceId = ''.obs; // To store the service ID if editing
+
+  // Error messages
+  RxString serviceNameError = ''.obs;
+  RxString serviceDescriptionError = ''.obs;
+  RxString servicePriceError = ''.obs;
 
   @override
   void onInit() {
@@ -27,10 +32,43 @@ class AddEditServiceController extends GetxController {
     } else {
       print('Unexpected type for Get.arguments: ${service.runtimeType}');
     }
+
+    // Set up listeners to validate fields on change
+    serviceNameController.addListener(validateServiceName);
+    serviceDescriptionController.addListener(validateServiceDescription);
+    servicePriceController.addListener(validateServicePrice);
+  }
+
+  void validateServiceName() {
+    serviceNameError.value = serviceNameController.text.isEmpty
+        ? 'Service name is required'
+        : '';
+  }
+
+  void validateServiceDescription() {
+    serviceDescriptionError.value = serviceDescriptionController.text.isEmpty
+        ? 'Service description is required'
+        : '';
+  }
+
+  void validateServicePrice() {
+    servicePriceError.value = servicePriceController.text.isEmpty
+        ? 'Service price is required'
+        : '';
+  }
+
+  void validateFields() {
+    validateServiceName();
+    validateServiceDescription();
+    validateServicePrice();
   }
 
   Future<void> saveService() async {
-    if (formKey.currentState!.validate()) {
+    validateFields();
+
+    if (serviceNameError.value.isEmpty &&
+        serviceDescriptionError.value.isEmpty &&
+        servicePriceError.value.isEmpty) {
       try {
         final isUpdating = serviceId.value.isNotEmpty;
         final url = isUpdating

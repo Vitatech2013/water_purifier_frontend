@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/add_edit/controllers/add_edit_controller.dart';
-import 'package:water_purifier/app/routes/app_pages.dart';
 
 class AddEditView extends GetView<AddEditController> {
   const AddEditView({super.key});
@@ -18,7 +17,27 @@ class AddEditView extends GetView<AddEditController> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add/Edit Product'),
+        title: controller.productId.isEmpty
+            ? const Text(
+                "Add Product",
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              )
+            : const Text(
+                "Edit Product",
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+        leading: IconButton(
+            onPressed: () {
+              Get.back();
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            )),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -45,7 +64,7 @@ class AddEditView extends GetView<AddEditController> {
                   );
                 } else {
                   return InkWell(
-                    onTap: ()=>controller.pickImage(ImageSource.camera),
+                    onTap: () => controller.pickImage(ImageSource.camera),
                     child:
                         Image.network(imageUrl, height: 150, fit: BoxFit.cover),
                   );
@@ -57,46 +76,79 @@ class AddEditView extends GetView<AddEditController> {
                 child: const Text('Pick Image'),
               ),
               const SizedBox(height: 16),
-              Form(
-                key: controller.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Obx(() {
+                    return TextField(
                       controller: controller.productNameController,
-                      decoration:
-                          const InputDecoration(labelText: 'Product Name'),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter a product name' : null,
-                    ),
-                    TextFormField(
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        labelText: 'Product Name',
+                        errorText: controller.productNameError.value.isNotEmpty
+                            ? controller.productNameError.value
+                            : null,
+                      ),
+                      onChanged: (value) => controller.validateProductName(),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  Obx(() {
+                    return TextField(
                       controller: controller.productDescriptionController,
-                      decoration:
-                          const InputDecoration(labelText: 'Product Description'),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter a description' : null,
-                    ),
-                    TextFormField(
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        labelText: 'Product Description',
+                        errorText:
+                            controller.productDescriptionError.value.isNotEmpty
+                                ? controller.productDescriptionError.value
+                                : null,
+                      ),
+                      onChanged: (value) =>
+                          controller.validateProductDescription(),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  Obx(() {
+                    return TextField(
                       controller: controller.productPriceController,
-                      decoration:
-                          const InputDecoration(labelText: 'Product Price'),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        labelText: 'Product Price',
+                        errorText: controller.productPriceError.value.isNotEmpty
+                            ? controller.productPriceError.value
+                            : null,
+                      ),
                       keyboardType: TextInputType.number,
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter a price' : null,
-                    ),
-                    TextFormField(
+                      onChanged: (value) => controller.validateProductPrice(),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                  Obx(() {
+                    return TextField(
                       controller: controller.warrantyController,
-                      decoration: const InputDecoration(labelText: 'Warranty'),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        controller.saveProduct();
-                      },
-                      child: const Text('Save Product'),
-                    ),
-                  ],
-                ),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        labelText: 'Warranty',
+                        errorText: controller.warrantyError.value.isNotEmpty
+                            ? controller.warrantyError.value
+                            : null,
+                      ),
+                      onChanged: (value) => controller.validateWarranty(),
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      controller.saveProduct();
+                    },
+                    child: const Text('Save Product'),
+                  ),
+                ],
               ),
             ],
           ),

@@ -29,44 +29,53 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Form(
-            key: controller.formKey,
-            child: Obx(
-                  () => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  _buildTextField(
+          child: Obx(
+                () => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                Obx(
+                  ()=> _buildTextField(
                     controller: controller.nameController,
                     labelText: 'Name',
                     hintText: 'Enter the customer name',
+                    errorText: controller.nameError.value,
                   ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
+                ),
+                const SizedBox(height: 16),
+                Obx(
+                  ()=> _buildTextField(
                     controller: controller.mobileNumberController,
                     labelText: 'Mobile Number',
                     hintText: 'Enter the mobile number',
                     keyboardType: TextInputType.phone,
+                    errorText: controller.mobileNumberError.value,
                   ),
-                  const SizedBox(height: 16),
-                  _buildExpansionTile(
-                    title: 'Products',
-                    items: controller.products,
-                    groupValue: controller.selectedProduct.value,
-                    onChanged: controller.selectProduct,
+                ),
+                const SizedBox(height: 16),
+                _buildExpansionTile(
+                  title: 'Products',
+                  items: controller.products,
+                  groupValue: controller.selectedProduct.value,
+                  onChanged: (value) {
+                    controller.selectedProduct(value);
+                    controller.selectedProductId.value = controller.products
+                        .firstWhere((product) => product.productName == value)
+                        .id;
+                  },
+                  errorText: controller.productError.value,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    controller.saveSale();
+                  },
+                  child: const Text(
+                    'Save Sale',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      controller.saveSale();
-                    },
-                    child: const Text(
-                      'Save Sale',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -80,47 +89,63 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
     required String hintText,
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
+    required String errorText,
   }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: labelText,
+            hintText: hintText,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            errorText: errorText.isNotEmpty ? errorText : null,
+          ),
+          maxLines: maxLines,
+          keyboardType: keyboardType,
         ),
-      ),
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      validator: (value) => value!.isEmpty ? 'This field is required' : null,
+      ],
     );
   }
 
   Widget _buildExpansionTile({
     required String title,
     required List<Datum> items,
-    required String? groupValue,
-    required Function(String?) onChanged,
+    required String groupValue,
+    required void Function(String) onChanged,
+    required String errorText,
   }) {
     return ExpansionTile(
-      collapsedShape: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      shape: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
+      shape: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),),
+      collapsedShape: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0),),
       title: Text(title),
-      children: items.map((item) {
-        return RadioListTile<String>(
-          title: Text(item.productName),
-          value: item.productName,
-          groupValue: groupValue,
-          onChanged: (value) {
-            onChanged(value);
-            controller.selectedProductId.value = item.id;
-          },
-        );
-      }).toList(),
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var item in items)
+              RadioListTile<String>(
+                title: Text(item.productName),
+                value: item.productName,
+                groupValue: groupValue,
+                onChanged: (value) {
+                  onChanged(value ?? '');
+                },
+              ),
+            // if (errorText.isNotEmpty)
+            //   Padding(
+            //     padding: const EdgeInsets.only(top: 8.0),
+            //     child: Text(
+            //       errorText,
+            //       style: const TextStyle(color: Colors.red),
+            //     ),
+            //   ),
+          ],
+        ),
+      ],
     );
   }
 }

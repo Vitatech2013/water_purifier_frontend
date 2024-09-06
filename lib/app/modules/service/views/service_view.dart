@@ -14,13 +14,14 @@ class ServiceView extends GetView<ServiceController> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-            onPressed: () {
-              Get.toNamed(Routes.HOME);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            )),
+          onPressed: () {
+            Get.toNamed(Routes.HOME);
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+        ),
         title: const Text(
           'Services Management',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -34,7 +35,16 @@ class ServiceView extends GetView<ServiceController> {
         }
 
         if (controller.services.isEmpty) {
-          return const Center(child: Text('No services available.'));
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Oops! It looks empty here. Why not add some Services?",
+                style: textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          );
         }
 
         return ListView.builder(
@@ -50,59 +60,55 @@ class ServiceView extends GetView<ServiceController> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16.0),
               ),
-              child: InkWell(
-                onTap: () {
-                  // Handle card tap if needed
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        service.name,
-                        style: textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      service.name,
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 6.0),
+                    Text(
+                      '💰 ${service.price}',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      service.description,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Get.toNamed(Routes.ADD_EDIT_SERVICE,
+                                arguments: service);
+                          },
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          tooltip: 'Edit',
                         ),
-                      ),
-                      const SizedBox(height: 6.0),
-                      Text(
-                        '💰 ${service.price}',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: Colors.green[700],
+                        IconButton(
+                          onPressed: () {
+                            // Deleting functionality
+                            controller.deleteService(serviceId);
+                          },
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          tooltip: 'Delete',
                         ),
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text(
-                        service.description,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 12.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              Get.toNamed(Routes.ADD_EDIT_SERVICE, arguments: service);
-                            },
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            tooltip: 'Edit',
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              // Deleting functionality
-                              controller.deleteService(serviceId);
-                            },
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            tooltip: 'Delete',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             );

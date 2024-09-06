@@ -9,16 +9,29 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add/Edit Service'),
-        backgroundColor: Colors.blue, // Unique color
-        centerTitle: true,
+        title: controller.serviceId.isEmpty
+            ? const Text(
+          "Add Service",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        )
+            : const Text(
+          "Edit Service",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          onPressed: () {
+            Get.back();
+          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+        ),
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Form(
-            key: controller.formKey,
-            child: Column(
+          child: Obx(
+            ()=> Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 12),
@@ -26,6 +39,8 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                   controller: controller.serviceNameController,
                   labelText: 'Service Name',
                   hintText: 'Enter the service name',
+                  errorText: controller.serviceNameError.value,
+                  onChanged: (value) => controller.validateServiceName(),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -33,6 +48,8 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                   labelText: 'Service Description',
                   hintText: 'Enter a description',
                   maxLines: 3,
+                  errorText: controller.serviceDescriptionError.value,
+                  onChanged: (value) => controller.validateServiceDescription(),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -40,6 +57,8 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                   labelText: 'Service Price',
                   hintText: 'Enter the price',
                   keyboardType: TextInputType.number,
+                  errorText: controller.servicePriceError.value,
+                  onChanged: (value) => controller.validateServicePrice(),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -62,20 +81,34 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
     required String hintText,
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
+    required String errorText,
+    required ValueChanged<String> onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: labelText,
+            hintText: hintText,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            errorText: errorText.isNotEmpty ? errorText : null,
+          ),
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          onChanged: onChanged,
         ),
-      ),
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      validator: (value) =>
-      value!.isEmpty ? 'This field is required' : null,
+        // if (errorText.isNotEmpty) ...[
+        //   const SizedBox(height: 4),
+        //   Text(
+        //     errorText,
+        //     style: TextStyle(color: Colors.red, fontSize: 12),
+        //   ),
+        // ],
+      ],
     );
   }
 }

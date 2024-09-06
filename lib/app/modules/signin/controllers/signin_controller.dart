@@ -9,8 +9,8 @@ import 'package:water_purifier/app/routes/app_pages.dart';
 class SigninController extends GetxController {
   final passwordVisibility = false.obs;
   final formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController(text: "manohar@gmail.com");
-  final passwordController = TextEditingController(text: "123");
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   void onClose() {

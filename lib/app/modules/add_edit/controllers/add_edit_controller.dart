@@ -8,7 +8,6 @@ import 'package:water_purifier/app/modules/product/controllers/product_controlle
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
 
-
 class AddEditController extends GetxController {
   final productNameController = TextEditingController();
   final productDescriptionController = TextEditingController();
@@ -26,6 +25,11 @@ class AddEditController extends GetxController {
   // To store the product ID (if editing an existing product)
   RxString productId = ''.obs;
 
+  // Error messages
+  RxString productNameError = ''.obs;
+  RxString productDescriptionError = ''.obs;
+  RxString productPriceError = ''.obs;
+  RxString warrantyError = ''.obs;
 
   Future<void> pickImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
@@ -34,12 +38,58 @@ class AddEditController extends GetxController {
     }
   }
 
+  void validateProductName() {
+    if (productNameController.text.isEmpty) {
+      productNameError.value = 'Product name is required';
+    } else {
+      productNameError.value = '';
+    }
+  }
+
+  void validateProductDescription() {
+    if (productDescriptionController.text.isEmpty) {
+      productDescriptionError.value = 'Description is required';
+    } else {
+      productDescriptionError.value = '';
+    }
+  }
+
+  void validateProductPrice() {
+    if (productPriceController.text.isEmpty) {
+      productPriceError.value = 'Price is required';
+    } else {
+      productPriceError.value = '';
+    }
+  }
+
+  void validateWarranty() {
+    if (warrantyController.text.isEmpty) {
+      warrantyError.value = '';
+    }
+  }
+
   Future<void> saveProduct() async {
-    if (formKey.currentState!.validate()) {
+    validateProductName();
+    validateProductDescription();
+    validateProductPrice();
+
+    if (productNameError.value.isEmpty &&
+        productDescriptionError.value.isEmpty &&
+        productPriceError.value.isEmpty) {
+      if (selectedImage.value == null && initialImage.value.isEmpty) {
+        Get.snackbar(
+          'Image Required',
+          'Please select an image to save the product.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
       try {
         // Determine if this is an add or update operation
         final isUpdating = productId.value.isNotEmpty;
-        print(isUpdating);
         final url = isUpdating
             ? '${AppURL.appBaseUrl}${AppURL.updateProducts}$productId'
             : '${AppURL.appBaseUrl}${AppURL.addProduct}';
@@ -67,15 +117,19 @@ class AddEditController extends GetxController {
 
         http.StreamedResponse response = await request.send();
 
-        if (response.statusCode == 201||response.statusCode==200) {
-          print('${isUpdating ? 'Product updated' : 'Product added'} successfully');
-          print(await response.stream.bytesToString());
+        if (response.statusCode == 201 || response.statusCode == 200) {
           Get.offNamed(Routes.PRODUCT);
-          productController.isEditing.value=true;
-          Future.delayed(3.seconds).whenComplete(() => productController.fetchProducts(),);
+          productController.isEditing.value = true;
+          Future.delayed(Duration(seconds: 3))
+              .whenComplete(() => productController.fetchProducts());
         } else {
-          print('Failed to ${isUpdating ? 'update' : 'add'} product');
-          print(response.statusCode);
+          Get.snackbar(
+            'Save Failed',
+            'Failed to ${isUpdating ? 'update' : 'add'} product.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
         }
       } catch (e) {
         print('Error occurred: $e');
@@ -93,7 +147,7 @@ class AddEditController extends GetxController {
     warrantyController.dispose();
     super.onClose();
   }
-  @override
+
   @override
   void onInit() {
     super.onInit();
@@ -113,5 +167,4 @@ class AddEditController extends GetxController {
       print('No product data found in Get.arguments');
     }
   }
-
 }

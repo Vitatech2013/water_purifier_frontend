@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Image(image: AssetImage("assets/waterdroppng.png")),
+              Image(image: AssetImage("assets/app_logo.png")),
               Text(
                 'AquaEssence',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
