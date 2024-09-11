@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
@@ -9,7 +10,6 @@ class ProductController extends GetxController {
   var products = <Datum>[].obs;  // Using the model Datum
   var isLoading = true.obs;
   final isEditing = false.obs;
-
   @override
   void onInit() {
     super.onInit();
@@ -19,7 +19,17 @@ class ProductController extends GetxController {
   Future<void> fetchProducts() async {
     try {
       isLoading.value = true;
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      if (token == null) {
+        print('Authorization token not found');
+        return;
+      }
       var request = http.Request('GET', Uri.parse(AppURL.appBaseUrl + AppURL.fetchProducts));
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
 
       http.StreamedResponse response = await request.send();
 
@@ -56,11 +66,18 @@ class ProductController extends GetxController {
 
   Future<void> deleteProduct(String productId) async {
     try {
-
-
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      if (token == null) {
+        print('Authorization token not found');
+        return;
+      }
       var request = http.Request('DELETE', Uri.parse('${AppURL.appBaseUrl}${AppURL.deleteProduct}$productId'));
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
       http.StreamedResponse response = await request.send();
-
       if (response.statusCode == 200) {
         print('Product deleted successfully');
         isEditing.value = true;

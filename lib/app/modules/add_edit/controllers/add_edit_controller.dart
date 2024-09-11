@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/product/controllers/product_controller.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
@@ -18,12 +19,13 @@ class AddEditController extends GetxController {
 
   // Image File
   Rx<File?> selectedImage = Rx<File?>(null);
-
-  // To store the initial image URL or path
   RxString initialImage = ''.obs;
 
-  // To store the product ID (if editing an existing product)
+  // Product ID to check if editing
   RxString productId = ''.obs;
+
+  // Edit Mode
+  var isEditMode = false.obs;
 
   // Error messages
   RxString productNameError = ''.obs;
@@ -31,6 +33,32 @@ class AddEditController extends GetxController {
   RxString productPriceError = ''.obs;
   RxString warrantyError = ''.obs;
 
+  // Warranty types
+  var selectedWarrantyType = 'M'.obs;
+  final List<String> warrantyTypes = ["M", "Y"];
+
+  @override
+  void onInit() {
+    super.onInit();
+    final Datum? product = Get.arguments;
+
+    if (product != null) {
+      isEditMode.value = true;
+      productId.value = product.id ?? '';
+
+      productNameController.text = product.productName ?? '';
+      productDescriptionController.text = product.description ?? '';
+      productPriceController.text = product.productPrice.toString() ?? '';
+      warrantyController.text = product.warranty.toString() ?? '';
+      selectedWarrantyType.value =
+      product.warrantyType == "months" ? "M" : "Y";
+      initialImage.value = product.productImg ?? '';
+    } else {
+      isEditMode.value = false;
+    }
+  }
+
+  // Pick Image
   Future<void> pickImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
@@ -38,34 +66,27 @@ class AddEditController extends GetxController {
     }
   }
 
+  // Validation Methods
   void validateProductName() {
-    if (productNameController.text.isEmpty) {
-      productNameError.value = 'Product name is required';
-    } else {
-      productNameError.value = '';
-    }
+    productNameError.value = productNameController.text.isEmpty
+        ? 'Product name is required'
+        : '';
   }
 
   void validateProductDescription() {
-    if (productDescriptionController.text.isEmpty) {
-      productDescriptionError.value = 'Description is required';
-    } else {
-      productDescriptionError.value = '';
-    }
+    productDescriptionError.value = productDescriptionController.text.isEmpty
+        ? 'Description is required'
+        : '';
   }
 
   void validateProductPrice() {
-    if (productPriceController.text.isEmpty) {
-      productPriceError.value = 'Price is required';
-    } else {
-      productPriceError.value = '';
-    }
+    productPriceError.value = productPriceController.text.isEmpty
+        ? 'Price is required'
+        : '';
   }
 
   void validateWarranty() {
-    if (warrantyController.text.isEmpty) {
-      warrantyError.value = '';
-    }
+    warrantyError.value = warrantyController.text.isEmpty ? '' : '';
   }
 
   Future<void> saveProduct() async {
@@ -88,7 +109,21 @@ class AddEditController extends GetxController {
       }
 
       try {
-        // Determine if this is an add or update operation
+        final prefs = await SharedPreferences.getInstance();
+        String? token = prefs.getString('token');
+        String? ownerId = prefs.getString('ownerId');
+
+        if (token == null || ownerId == null) {
+          Get.snackbar(
+            'Error',
+            'Authorization token or owner ID not found.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return;
+        }
+
         final isUpdating = productId.value.isNotEmpty;
         final url = isUpdating
             ? '${AppURL.appBaseUrl}${AppURL.updateProducts}$productId'
@@ -104,28 +139,37 @@ class AddEditController extends GetxController {
           'productPrice': productPriceController.text,
           'warranty': warrantyController.text,
           'description': productDescriptionController.text,
+          'warrantyType': selectedWarrantyType.value == 'M' ? 'months' : 'years',
+          //'ownerId': ownerId,
         });
 
+        // Handle image file
         if (selectedImage.value != null) {
           request.files.add(
             await http.MultipartFile.fromPath('file', selectedImage.value!.path),
           );
-        } else if (initialImage.value.isNotEmpty && !isUpdating) {
-          // Handle case where image is not selected but an initial image is provided
+        } else if (initialImage.value.isNotEmpty && isUpdating) {
+          // In case the image is already provided and not updated during edit
           request.fields['existingImage'] = initialImage.value;
         }
+
+        request.headers.addAll({
+          'Content-Type': 'multipart/form-data',
+          'Authorization': 'Bearer $token',  // Add the authorization token
+        });
 
         http.StreamedResponse response = await request.send();
 
         if (response.statusCode == 201 || response.statusCode == 200) {
           Get.offNamed(Routes.PRODUCT);
           productController.isEditing.value = true;
-          Future.delayed(Duration(seconds: 3))
+          Future.delayed(const Duration(seconds: 3))
               .whenComplete(() => productController.fetchProducts());
         } else {
+          print('Error: ${response.statusCode}');
           Get.snackbar(
             'Save Failed',
-            'Failed to ${isUpdating ? 'update' : 'add'} product.',
+            'Failed to ${isUpdating ? 'update' : 'add'} product. Status: ${response.statusCode}',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.red,
             colorText: Colors.white,
@@ -133,11 +177,19 @@ class AddEditController extends GetxController {
         }
       } catch (e) {
         print('Error occurred: $e');
+        Get.snackbar(
+          'Save Failed',
+          'An error occurred: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } else {
       print('Form validation failed');
     }
   }
+
 
   @override
   void onClose() {
@@ -146,25 +198,5 @@ class AddEditController extends GetxController {
     productPriceController.dispose();
     warrantyController.dispose();
     super.onClose();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-
-    // Expecting Get.arguments to return a Datum object
-    final Datum? product = Get.arguments as Datum?;
-
-    if (product != null) {
-      // Safely assign values from Datum object
-      productId.value = product.id ?? ''; // Assuming 'id' is the product's ID in Datum
-      productNameController.text = product.productName ?? '';
-      productDescriptionController.text = product.description ?? '';
-      productPriceController.text = product.productPrice?.toString() ?? '';
-      warrantyController.text = product.warranty ?? '';
-      initialImage.value = product.productImg ?? ''; // Assuming 'productImg' holds the image URL/path
-    } else {
-      print('No product data found in Get.arguments');
-    }
   }
 }

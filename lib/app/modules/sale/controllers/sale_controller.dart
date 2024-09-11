@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 import 'package:water_purifier/app/modules/sale/models/sales_response.dart';
@@ -10,14 +11,35 @@ import 'package:water_purifier/app/modules/service/models/service_response.dart'
 class SaleController extends GetxController {
   var isLoading = true.obs;
   var salesList = <Record>[].obs;
+  var filteredSalesList = <Record>[].obs;
   var productList = <Datum>[].obs;
   var serviceList = <ServiceResponse>[].obs;
   final isEditing = false.obs;
   var addedServiceIds = <String>[].obs;
+  var phoneNumberFilter = ''.obs;
   Future<void> fetchSales() async {
     try {
       isLoading(true);
-      var response = await http.get(Uri.parse("${AppURL.appBaseUrl}${AppURL.fetchSale}"));
+
+      // Retrieve token from shared preferences or environment
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      if (token == null) {
+        print('Authorization token not found.');
+        return;
+      }
+
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Add your token here
+      };
+
+      var response = await http.get(
+        Uri.parse("${AppURL.appBaseUrl}${AppURL.fetchSale}"),
+        headers: headers,
+      );
+
       if (response.statusCode == 200) {
         var jsonData = jsonDecode(response.body);
         SalesResponse salesResponse = SalesResponse.fromJson(jsonData);
@@ -26,17 +48,52 @@ class SaleController extends GetxController {
       } else {
         print(response.body.toString());
       }
-    } catch (e,s) {
+    } catch (e, s) {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: s);
     } finally {
       isLoading(false);
     }
   }
+  // Filter sales based on phone number
+  void filterSalesList() {
+    if (phoneNumberFilter.isEmpty) {
+      filteredSalesList.assignAll(salesList);
+    } else {
+      filteredSalesList.assignAll(salesList.where((sale) =>
+          sale.user!.mobile.contains(phoneNumberFilter.value)));
+    }
+  }
+
+  // Update phone number filter and apply filter
+  void filterSalesByPhone(String phoneNumber) {
+    phoneNumberFilter.value = phoneNumber;
+    filterSalesList();
+  }
   Future<void> fetchProducts() async {
     try {
       isLoading.value = true;
-      var request = http.Request('GET', Uri.parse(AppURL.appBaseUrl + AppURL.fetchProducts));
+
+      // Retrieve token and ownerId from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String? ownerId = prefs.getString('ownerId');
+
+      if (token == null || ownerId == null) {
+        print('Authorization token or owner ID not found.');
+        return;
+      }
+
+      // Prepare the URL with ownerId as a query parameter
+      final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchProducts}?ownerId=$ownerId');
+
+      // Add the authorization token to the headers
+      final headers = {
+        'Authorization': 'Bearer $token', // Add the token here
+      };
+
+      var request = http.Request('GET', url);
+      request.headers.addAll(headers);
 
       http.StreamedResponse response = await request.send();
 
@@ -66,14 +123,35 @@ class SaleController extends GetxController {
   Future<void> fetchServices() async {
     try {
       isLoading.value = true;
-      final response = await http.get(Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchService}'));
+
+      // Retrieve token and ownerId from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String? ownerId = prefs.getString('ownerId');
+
+      if (token == null || ownerId == null) {
+        print('Authorization token or owner ID not found.');
+        return;
+      }
+
+      // Prepare the URL with ownerId as a query parameter
+      final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchService}?ownerId=$ownerId');
+
+      // Add the authorization token to the headers
+      final headers = {
+        'Authorization': 'Bearer $token', // Add the token here
+      };
+
+      final response = await http.get(url, headers: headers);
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
 
         if (responseData is Map<String, dynamic> && responseData['status'] == 1) {
           final List<dynamic> servicesData = responseData['data'];
-          serviceList.value = servicesData.map((serviceJson) => ServiceResponse.fromJson(serviceJson as Map<String, dynamic>)).toList();
+          serviceList.value = servicesData
+              .map((serviceJson) => ServiceResponse.fromJson(serviceJson as Map<String, dynamic>))
+              .toList();
         } else {
           print('Unexpected response format or status');
         }
@@ -86,41 +164,58 @@ class SaleController extends GetxController {
       isLoading.value = false;
     }
   }
-  Future<void> saveSale({required String name,required String mobile,required String productId,}) async {
-      try {
-        const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
-        var headers = {
-          'Content-Type': 'application/json',
-        };
+  Future<void> saveSale({
+    required String name,
+    required String mobile,
+    required String productId,
+  }) async {
+    try {
+      // Retrieve token and ownerId from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String? ownerId = prefs.getString('ownerId');
 
-        var body = json.encode({
-          "name": name,
-          "mobile": mobile,
-          "productId": productId,
-          "saleDate": DateTime.now().toIso8601String()
-        });
-
-        var request = http.Request('POST', Uri.parse(url));
-        request.body = body;
-        request.headers.addAll(headers);
-
-        http.StreamedResponse response = await request.send();
-
-        if (response.statusCode == 201||response.statusCode==200) {
-          print('Sale added successfully');
-          isEditing.value=true;
-          print(await response.stream.bytesToString());
-          Future.delayed(3.seconds).whenComplete(()=>
-              saleEdited()
-          );
-        } else {
-          print('Failed to add sale');
-          print(response.reasonPhrase);
-          print(response.statusCode);
-        }
-      } catch (e) {
-        print('Error occurred: $e');
+      if (token == null || ownerId == null) {
+        print('Authorization token or owner ID not found.');
+        return;
       }
+
+      const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
+
+      // Add token to headers
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Add the token here
+      };
+
+      // Include ownerId in the request body
+      var body = json.encode({
+        "name": name,
+        "mobile": mobile,
+        "productId": productId,
+        "saleDate": DateTime.now().toIso8601String(),
+        "ownerId": ownerId, // Add ownerId to the body
+      });
+
+      var request = http.Request('POST', Uri.parse(url));
+      request.body = body;
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        print('Sale added successfully');
+        isEditing.value = true;
+        print(await response.stream.bytesToString());
+        Future.delayed(3.seconds).whenComplete(() => saleEdited());
+      } else {
+        print('Failed to add sale');
+        print(response.reasonPhrase);
+        print(response.statusCode);
+      }
+    } catch (e) {
+      print('Error occurred: $e');
+    }
   }
   Future<void> postService({
     required String saleId,
@@ -129,16 +224,31 @@ class SaleController extends GetxController {
     required double servicePrice,
   }) async {
     const String apiUrl = '${AppURL.appBaseUrl}/api/sale/addservice';
+
+    // Retrieve token and ownerId from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    String? ownerId = prefs.getString('ownerId');
+
+    if (token == null || ownerId == null) {
+      print('Authorization token or owner ID not found.');
+      return;
+    }
+
+    // Add token to the headers
     final headers = {
       'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // Add the token
     };
 
+    // Include ownerId in the request body
     final body = json.encode({
       'saleId': saleId,
       'productId': productId,
       'serviceTypeId': serviceTypeId,
       'serviceDate': DateTime.now().toIso8601String(),
       'servicePrice': servicePrice,
+      'ownerId': ownerId, // Add ownerId
     });
 
     try {
@@ -151,10 +261,8 @@ class SaleController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('Response: ${response.body}');
         addedServiceIds.add(serviceTypeId);
-        isEditing.value=true;
-        Future.delayed(3.seconds).whenComplete(()=>
-            saleEdited()
-        );
+        isEditing.value = true;
+        Future.delayed(3.seconds).whenComplete(() => saleEdited());
       } else {
         print('Error: ${response.reasonPhrase}');
         print('Error: ${response.body}');

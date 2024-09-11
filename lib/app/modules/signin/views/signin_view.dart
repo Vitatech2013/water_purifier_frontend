@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:water_purifier/app/modules/signin/controllers/signin_controller.dart';
-import 'package:water_purifier/app/routes/app_pages.dart';
 
 class SigninView extends GetView<SigninController> {
   const SigninView({super.key});

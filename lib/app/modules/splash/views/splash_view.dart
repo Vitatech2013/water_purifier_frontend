@@ -40,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Future.delayed(const Duration(seconds: 3), () {
       if (isLoggedIn) {
-        Navigator.pushReplacementNamed(context, '/home'); // Replace with your home route
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         Navigator.pushReplacementNamed(context, '/signin');
       }
@@ -66,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               Image(image: AssetImage("assets/app_logo.png")),
               Text(
                 'AquaEssence',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
               ),
             ],
           ),

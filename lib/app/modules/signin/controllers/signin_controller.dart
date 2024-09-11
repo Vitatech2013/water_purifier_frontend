@@ -60,9 +60,12 @@ class SigninController extends GetxController {
       if (response.statusCode == 200) {
         String responseBody = await response.stream.bytesToString();
         print(responseBody);
+        var decodedResponse = jsonDecode(responseBody);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', emailController.text.trim());
+        await prefs.setString("ownerId", decodedResponse["_id"]);
+        await prefs.setString("token", decodedResponse["token"]);
         Get.offAllNamed(Routes.HOME);
       } else {
         print(response.reasonPhrase);

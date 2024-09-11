@@ -2,26 +2,24 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:telephony/telephony.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 import 'package:water_purifier/app/modules/sale/controllers/sale_controller.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
-import 'package:permission_handler/permission_handler.dart'; // Import permission_handler package
 
 class AddEditSaleController extends GetxController {
   final nameController = TextEditingController();
   final mobileNumberController = TextEditingController();
+  final productPriceController = TextEditingController();
+  final salePriceController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final saleController = Get.find<SaleController>();
 
-  RxString saleId = ''.obs;
+  RxString userId = ''.obs;
   RxString selectedProduct = ''.obs;
-  RxString selectedService = ''.obs;
   RxList<Datum> products = <Datum>[].obs;
   final selectedProductId = Rx<String?>(null);
-
-  final telephony = Telephony.instance;
 
   Rx<DateTime> selectedDate = DateTime.now().obs;
 
@@ -29,24 +27,36 @@ class AddEditSaleController extends GetxController {
   RxString nameError = ''.obs;
   RxString mobileNumberError = ''.obs;
   RxString productError = ''.obs;
+  RxString salePriceError = ''.obs;
+  var args = {};
 
   @override
   void onInit() {
     super.onInit();
-    final Map<String, dynamic> sale = Get.arguments ?? {};
-    saleId.value = sale['id'] ?? '';
-    nameController.text = sale['name'] ?? '';
-    mobileNumberController.text = sale['mobileNumber'] ?? '';
     fetchProducts();
-
+    if (Get.arguments != null && Get.arguments is Map) {
+      args = Get.arguments;
+      nameController.text = args["userName"] ?? "";
+      mobileNumberController.text = args["userMobile"] ?? "";
+      userId.value = args["userId"] ?? 0;
+    } else {
+      nameController.text = "";
+      mobileNumberController.text = "";
+      userId.value = "";
+    }
+    print(args.toString());
     nameController.addListener(_validateName);
     mobileNumberController.addListener(_validateMobileNumber);
+    salePriceController.addListener(_validateSalePrice);
   }
 
   void _validateName() {
-    nameError.value = nameController.text.isEmpty
-        ? 'Name is required'
-        : '';
+    nameError.value = nameController.text.isEmpty ? 'Name is required' : '';
+  }
+
+  void _validateSalePrice() {
+    salePriceError.value =
+        salePriceController.text.isEmpty ? 'Sale Price is required' : '';
   }
 
   void _validateMobileNumber() {
@@ -59,25 +69,38 @@ class AddEditSaleController extends GetxController {
   void validateFields() {
     _validateName();
     _validateMobileNumber();
-    productError.value = selectedProductId.value == null ? 'Please select a product' : '';
+    _validateSalePrice();
+    productError.value =
+        selectedProductId.value == null ? 'Please select a product' : '';
   }
 
-  Future<void> selectSaleDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: selectedDate.value,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
+  void editPersonValidateField() {
+    _validateName();
+    _validateMobileNumber();
+  }
 
-    if (pickedDate != null && pickedDate != selectedDate.value) {
-      selectedDate.value = pickedDate;
-    }
+  void productSelected(String value) {
+    productPriceController.text = value;
   }
 
   Future<void> fetchProducts() async {
     try {
-      var request = http.Request('GET', Uri.parse('${AppURL.appBaseUrl}/api/product/'));
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+      String? ownerId = prefs.getString('ownerId');
+
+      if (token == null || ownerId == null) {
+        print('Authorization token or owner ID not found.');
+        return;
+      }
+
+      var request = http.Request('GET',
+          Uri.parse('${AppURL.appBaseUrl}/api/product/?ownerId=$ownerId'));
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
@@ -99,15 +122,32 @@ class AddEditSaleController extends GetxController {
     if (nameError.value.isEmpty &&
         mobileNumberError.value.isEmpty &&
         productError.value.isEmpty &&
+        salePriceError.value.isEmpty &&
         selectedProductId.value != null) {
       try {
+        final prefs = await SharedPreferences.getInstance();
+        String? token = prefs.getString('token');
+        String? ownerId = prefs.getString('ownerId');
+
+        if (token == null || ownerId == null) {
+          print('Authorization token or owner ID not found.');
+          return;
+        }
+
         const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
-        var headers = {'Content-Type': 'application/json'};
+        var headers = {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        };
+        print("ownerId$ownerId");
+        print("productId${selectedProductId.value}");
         var body = json.encode({
           "name": nameController.text,
           "mobile": mobileNumberController.text,
           "productId": selectedProductId.value ?? "",
           "saleDate": selectedDate.value.toIso8601String(),
+          "salePrice": salePriceController.text,
+          "ownerId": ownerId,
         });
 
         var request = http.Request('POST', Uri.parse(url));
@@ -119,10 +159,10 @@ class AddEditSaleController extends GetxController {
         if (response.statusCode == 201 || response.statusCode == 200) {
           print('Sale added successfully');
           await response.stream.bytesToString();
-          await sendSaleMessage(mobileNumberController.text, selectedProduct.value);
           Get.offNamed(Routes.SALE);
           saleController.isEditing.value = true;
-          Future.delayed(Duration(seconds: 3)).whenComplete(() => saleController.fetchSales());
+          Future.delayed(const Duration(seconds: 1))
+              .whenComplete(() => saleController.fetchSales());
         } else {
           print('Failed to add sale');
           print(response.reasonPhrase);
@@ -136,28 +176,61 @@ class AddEditSaleController extends GetxController {
     }
   }
 
-  bool _isValidIndianMobileNumber(String number) {
-    final pattern = RegExp(r'^[6-9]\d{9}$');
-    return pattern.hasMatch(number);
-  }
+  Future<void> editPerson() async {
+    // Validate input fields if necessary
+    editPersonValidateField(); // Assuming you have a validation method
 
-  Future<void> sendSaleMessage(String recipient, String productName) async {
-    final PermissionStatus permissionStatus = await Permission.sms.request();
-
-    if (permissionStatus.isGranted) {
+    if (nameError.value.isEmpty && mobileNumberError.value.isEmpty) {
       try {
-        final message = 'Thank you for purchasing $productName. Your sale has been registered.';
-        telephony.sendSms(
-          to: recipient,
-          message: message,
-        );
-        print('SMS sent successfully');
+        // Fetch the token and ownerId from shared preferences
+        final prefs = await SharedPreferences.getInstance();
+        String? token = prefs.getString('token');
+
+        if (token == null) {
+          print('Authorization token not found.');
+          return;
+        }
+
+        // Set up the API endpoint URL
+        var url = '${AppURL.appBaseUrl}${AppURL.editPerson}$userId';
+
+        var headers = {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        };
+
+        // Prepare the body with dynamic values from text controllers
+        var body = json.encode({
+          "name": nameController.text,
+          "mobile": mobileNumberController.text,
+        });
+
+        // Create the HTTP request
+        var request = http.Request('PUT', Uri.parse(url));
+        request.body = body;
+        request.headers.addAll(headers);
+
+        // Send the request and await the response
+        http.StreamedResponse response = await request.send();
+
+        // Check the response status
+        if (response.statusCode == 200) {
+          print('Person edited successfully');
+          await response.stream.bytesToString();
+          Get.offNamed(Routes.SALE);
+          saleController.isEditing.value = true;
+          Future.delayed(const Duration(seconds: 1))
+              .whenComplete(() => saleController.fetchSales());
+        } else {
+          print('Failed to edit person');
+          print(response.reasonPhrase);
+          print(response.statusCode);
+        }
       } catch (e) {
-        print('Error sending SMS: $e');
+        print('Error occurred: $e');
       }
     } else {
-      print('SMS permissions not granted');
-      Get.snackbar('Error', 'SMS permission not granted');
+      print('Form validation failed');
     }
   }
 
@@ -165,6 +238,9 @@ class AddEditSaleController extends GetxController {
   void onClose() {
     nameController.dispose();
     mobileNumberController.dispose();
+    salePriceController.dispose();
+    productPriceController.dispose();
+    fetchProducts();
     super.onClose();
   }
 }

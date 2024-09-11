@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:water_purifier/app/modules/service/controllers/service_controller.dart';
@@ -10,117 +12,138 @@ class ServiceView extends GetView<ServiceController> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Get.toNamed(Routes.HOME);
-          },
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
+    final width = MediaQuery.of(context).size.width;
+    return WillPopScope(
+      onWillPop: () async {
+        log('Physical back button pressed');
+        Get.offAllNamed(Routes.HOME);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () {
+              Get.offAllNamed(Routes.HOME);
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
           ),
+          title: const Text(
+            'Services Management',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          scrolledUnderElevation: 0,
+          backgroundColor: Colors.blue,
         ),
-        title: const Text(
-          'Services Management',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.blue,
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (controller.services.isEmpty) {
+          if (controller.services.isEmpty) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Oops! It looks empty here. Why not add some Services?",
+                  style: textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            );
+          }
+
           return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                "Oops! It looks empty here. Why not add some Services?",
-                style: textTheme.titleLarge,
-                textAlign: TextAlign.center,
+              SizedBox(height: width * 0.015),
+              controller.isEditing.value
+                  ? const LinearProgressIndicator()
+                  : const LimitedBox(),
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.all(width * 0.02),
+                  itemCount: controller.services.length,
+                  itemBuilder: (context, index) {
+                    final service = controller.services[index];
+                    final serviceId = service.id;
+
+                    return Card(
+                      elevation: width * 0.017,
+                      margin: EdgeInsets.symmetric(vertical: width * 0.02),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(width * 0.02),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            top: width * 0.04,
+                            right: width * 0.04,
+                            bottom: width * 0.115,
+                            left: width * 0.04),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              service.name,
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            SizedBox(height: width * 0.017),
+                            Text(
+                              '💰 ${service.price}',
+                              style: textTheme.titleMedium?.copyWith(
+                                color: Colors.green[700],
+                              ),
+                            ),
+                            SizedBox(height: width * 0.02),
+                            Text(
+                              service.description,
+                              style: textTheme.titleMedium?.copyWith(
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(height: width * 0.03),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    Get.toNamed(Routes.ADD_EDIT_SERVICE,
+                                        arguments: service);
+                                  },
+                                  icon: const Icon(Icons.edit,
+                                      color: Colors.blue),
+                                  tooltip: 'Edit',
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    controller.deleteService(serviceId);
+                                  },
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
+                                  tooltip: 'Delete',
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(8.0),
-          itemCount: controller.services.length,
-          itemBuilder: (context, index) {
-            final service = controller.services[index];
-            final serviceId = service.id;
-
-            return Card(
-              elevation: 6.0,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      service.name,
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 6.0),
-                    Text(
-                      '💰 ${service.price}',
-                      style: textTheme.titleMedium?.copyWith(
-                        color: Colors.green[700],
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      service.description,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                    const SizedBox(height: 12.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Get.toNamed(Routes.ADD_EDIT_SERVICE,
-                                arguments: service);
-                          },
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          tooltip: 'Edit',
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            // Deleting functionality
-                            controller.deleteService(serviceId);
-                          },
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          tooltip: 'Delete',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
+        }),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Get.toNamed(Routes.ADD_EDIT_SERVICE);
           },
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to add new service
-          Get.toNamed(Routes.ADD_EDIT_SERVICE);
-        },
-        child: const Icon(Icons.add),
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }

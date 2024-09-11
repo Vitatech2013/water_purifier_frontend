@@ -2,7 +2,7 @@ class AppURL {
   AppURL._();
 
   //Urls
-  static const appBaseUrl = 'http://192.168.250.186:5000';
+  static const appBaseUrl = 'http://78.142.47.247:7000';
   //login
   static const login = '/api/owner/login';
   //products
@@ -18,4 +18,7 @@ class AppURL {
   //sales
   static const addSale = '/api/sale/add';
   static const fetchSale = '/api/sale';
+
+  //edit person
+    static const editPerson ='/api/user/users/';
 }

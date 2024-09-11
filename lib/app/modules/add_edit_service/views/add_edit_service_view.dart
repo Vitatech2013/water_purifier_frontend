@@ -30,38 +30,43 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Obx(
-            ()=> Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child:  Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 12),
-                _buildTextField(
-                  controller: controller.serviceNameController,
-                  labelText: 'Service Name',
-                  hintText: 'Enter the service name',
-                  errorText: controller.serviceNameError.value,
-                  onChanged: (value) => controller.validateServiceName(),
+                Obx(
+                  ()=> _buildTextField(
+                    controller: controller.serviceNameController,
+                    labelText: 'Service Name',
+                    hintText: 'Enter the service name',
+                    errorText:controller.serviceNameError.value.isNotEmpty? controller.serviceNameError.value:"",
+                    onChanged: (value) => controller.validateServiceName(),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
-                  controller: controller.serviceDescriptionController,
-                  labelText: 'Service Description',
-                  hintText: 'Enter a description',
-                  maxLines: 3,
-                  errorText: controller.serviceDescriptionError.value,
-                  onChanged: (value) => controller.validateServiceDescription(),
+                Obx(
+                  ()=> _buildTextField(
+                    controller: controller.serviceDescriptionController,
+                    labelText: 'Service Description',
+                    hintText: 'Enter a description',
+                    maxLines: 3,
+                    errorText: controller.serviceDescriptionError.value,
+                    onChanged: (value) => controller.validateServiceDescription(),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                _buildTextField(
-                  controller: controller.servicePriceController,
-                  labelText: 'Service Price',
-                  hintText: 'Enter the price',
-                  keyboardType: TextInputType.number,
-                  errorText: controller.servicePriceError.value,
-                  onChanged: (value) => controller.validateServicePrice(),
+                Obx(
+                  ()=> _buildTextField(
+                    controller: controller.servicePriceController,
+                    labelText: 'Service Price',
+                    hintText: 'Enter the price',
+                    keyboardType: TextInputType.number,
+                    errorText: controller.servicePriceError.value,
+                    onChanged: (value) => controller.validateServicePrice(),
+                  ),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
+                FilledButton(
                   onPressed: () {
                     controller.saveService();
                   },
@@ -69,7 +74,6 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                 ),
               ],
             ),
-          ),
         ),
       ),
     );
@@ -101,13 +105,6 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
           keyboardType: keyboardType,
           onChanged: onChanged,
         ),
-        // if (errorText.isNotEmpty) ...[
-        //   const SizedBox(height: 4),
-        //   Text(
-        //     errorText,
-        //     style: TextStyle(color: Colors.red, fontSize: 12),
-        //   ),
-        // ],
       ],
     );
   }

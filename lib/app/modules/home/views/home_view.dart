@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:water_purifier/app/routes/app_pages.dart';
 
 import 'package:water_purifier/app/modules/home/controllers/home_controller.dart';
+import 'package:water_purifier/app/routes/app_pages.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -26,50 +26,52 @@ class HomeView extends GetView<HomeController> {
           ),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration:  BoxDecoration(
                 color: Colors.blue,
                 borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(30),
-                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(width*0.075),
+                  topLeft: Radius.circular(width*0.075),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        buildCard(
-                          width,
-                          height,
-                          'Products',
-                          "assets/productpng.png",
-                          "Products",
-                        ),
-                        buildCard(
-                          width,
-                          height,
-                          'Services',
-                          "assets/supportpng.png",
-                          "Services",
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20), // Space between rows
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        buildCard(
-                          width,
-                          height,
-                          'Sales',
-                          "assets/salespng.png",
-                          "Sales",
-                        ),
-                      ],
-                    ),
-                  ],
+                padding:  EdgeInsets.all(width*0.038),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          buildCard(
+                            width,
+                            height,
+                            'Products',
+                            "assets/productpng.png",
+                            "Products",
+                          ),
+                          buildCard(
+                            width,
+                            height,
+                            'Services',
+                            "assets/supportpng.png",
+                            "Services",
+                          ),
+                        ],
+                      ),
+                       SizedBox(height: width*0.02), // Space between rows
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          buildCard(
+                            width,
+                            height,
+                            'Sales',
+                            "assets/salespng.png",
+                            "Sales",
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -87,17 +89,22 @@ class HomeView extends GetView<HomeController> {
       String image,
       String navigateTo,
       ) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
         print("onTapCalled for $navigateTo");
         if (navigateTo == "Products") {
           print("Navigating to Products");
           Get.toNamed(Routes.PRODUCT);
+          // Get.to(const ProductView(),transition: Transition.rightToLeftWithFade);
         } else if (navigateTo == "Services") {
           print("Navigating to Services");
+          print(width);
+          print(height);
           Get.toNamed(Routes.SERVICE);
+          // Get.to(const ServiceView(),transition: Transition.rightToLeftWithFade);
         } else if (navigateTo == "Sales") {
           print("Navigating to Sales");
+          // Get.to(const SaleView(),transition: Transition.rightToLeftWithFade);
           Get.toNamed(Routes.SALE);
         } else {
           print("Unknown navigation target: $navigateTo");
@@ -106,21 +113,21 @@ class HomeView extends GetView<HomeController> {
       child: Card(
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(width*0.06),
         ),
         child: Container(
-          width: (width * 0.4), // Adjust card width
+          width: (width * 0.4),
           height: height / 5.5, // Adjust card height
-          padding: const EdgeInsets.all(16.0),
+          padding:  EdgeInsets.all(width*0.04),
           child: Column(
             children: [
               Image.asset(
                 image,
-                height: 80,
+                height: width*0.20,
               ),
               Text(
                 text,
-                style: const TextStyle(fontSize: 18),
+                style:  TextStyle(fontSize: width*0.045),
               ),
             ],
           ),
