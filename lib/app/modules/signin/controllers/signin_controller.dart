@@ -48,7 +48,10 @@ class SigninController extends GetxController {
       var headers = {
         'Content-Type': 'application/json',
       };
-      var request = http.Request('POST', Uri.parse(AppURL.appBaseUrl + AppURL.login));
+      var request = http.Request(
+        'POST',
+        Uri.parse(AppURL.appBaseUrl + AppURL.login),
+      );
       request.body = json.encode({
         "email": emailController.text.trim(),
         "password": passwordController.text.trim(),
@@ -59,16 +62,29 @@ class SigninController extends GetxController {
 
       if (response.statusCode == 200) {
         String responseBody = await response.stream.bytesToString();
-        print(responseBody);
         var decodedResponse = jsonDecode(responseBody);
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', emailController.text.trim());
         await prefs.setString("ownerId", decodedResponse["_id"]);
         await prefs.setString("token", decodedResponse["token"]);
-        Get.offAllNamed(Routes.HOME);
+
+        // Extract username from email (before '@')
+        String email = emailController.text.trim();
+        String username = email.split('@')[0];
+        Get.snackbar(
+          'Welcome, $username!',
+          'Hi $username, Here you can go!',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.blueAccent,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+
+        // Navigate to home page after greeting
+        Get.offAllNamed(Routes.MAIN);
       } else {
-        print(response.reasonPhrase);
         Get.snackbar('Login Failed', 'Invalid email or password');
       }
     }

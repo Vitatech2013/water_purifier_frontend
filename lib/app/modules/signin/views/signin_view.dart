@@ -90,6 +90,7 @@ class SigninView extends GetView<SigninController> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                  backgroundColor: Colors.blue
                 ),
                 onPressed: controller.signIn,
                 child: const Text("Login"),

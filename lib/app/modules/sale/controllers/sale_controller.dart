@@ -168,9 +168,9 @@ class SaleController extends GetxController {
     required String name,
     required String mobile,
     required String productId,
+    required String salePrice,
   }) async {
     try {
-      // Retrieve token and ownerId from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
       String? ownerId = prefs.getString('ownerId');
@@ -182,7 +182,6 @@ class SaleController extends GetxController {
 
       const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
 
-      // Add token to headers
       var headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token', // Add the token here
@@ -194,6 +193,7 @@ class SaleController extends GetxController {
         "mobile": mobile,
         "productId": productId,
         "saleDate": DateTime.now().toIso8601String(),
+        "salePrice": salePrice,
         "ownerId": ownerId, // Add ownerId to the body
       });
 

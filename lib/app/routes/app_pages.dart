@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../modules/account/bindings/account_binding.dart';
+import '../modules/account/views/account_view.dart';
 import '../modules/add_edit/bindings/add_edit_binding.dart';
 import '../modules/add_edit/views/add_edit_view.dart';
 import '../modules/add_edit_sale/bindings/add_edit_sale_binding.dart';
@@ -8,6 +10,8 @@ import '../modules/add_edit_service/bindings/add_edit_service_binding.dart';
 import '../modules/add_edit_service/views/add_edit_service_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
+import '../modules/main/bindings/main_binding.dart';
+import '../modules/main/views/main_view.dart';
 import '../modules/product/bindings/product_binding.dart';
 import '../modules/product/views/product_view.dart';
 import '../modules/sale/bindings/sale_binding.dart';
@@ -71,6 +75,16 @@ class AppPages {
       name: _Paths.ADD_EDIT_SALE,
       page: () => const AddEditSaleView(),
       binding: AddEditSaleBinding(),
+    ),
+    GetPage(
+      name: _Paths.ACCOUNT,
+      page: () => const AccountView(),
+      binding: AccountBinding(),
+    ),
+    GetPage(
+      name: _Paths.MAIN,
+      page: () => const MainView(),
+      binding: MainBinding(),
     ),
   ];
 }

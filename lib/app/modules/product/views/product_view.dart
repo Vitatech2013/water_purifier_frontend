@@ -27,14 +27,14 @@ class ProductView extends GetView<ProductController> {
     return WillPopScope(
       onWillPop: () async {
         log('Physical back button pressed');
-        Get.offAllNamed(Routes.HOME);
+        Get.offAllNamed(Routes.MAIN);
         return false;
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             onPressed: () {
-              Get.offAllNamed(Routes.HOME);
+              Get.offAllNamed(Routes.MAIN);
             },
             icon: const Icon(
               Icons.arrow_back,

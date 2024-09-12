@@ -17,14 +17,14 @@ class SaleView extends GetView<SaleController> {
     return WillPopScope(
       onWillPop: () async {
         log('Physical back button pressed');
-        Get.offAllNamed(Routes.HOME);
+        Get.offAllNamed(Routes.MAIN);
         return false;
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             onPressed: () {
-              Get.offAllNamed(Routes.HOME);
+              Get.offAllNamed(Routes.MAIN);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -121,25 +121,30 @@ class SaleView extends GetView<SaleController> {
             ],
           ),
           child: ExpansionTile(
-            leading: IconButton(
-                onPressed: () {
-                  Get.toNamed(Routes.ADD_EDIT_SALE, arguments: {
-                    "userId": sale.user?.id,
-                    "userName":sale.user?.name,
-                    "userMobile":sale.user?.mobile,
-                  });
-                },
-                icon: const Icon(Icons.edit)),
             backgroundColor: Colors.transparent,
             collapsedBackgroundColor: Colors.transparent,
             shape: const OutlineInputBorder(
               borderSide: BorderSide.none,
               borderRadius: BorderRadius.all(Radius.zero),
             ),
-            title: Text(
-              '${sale.user?.name} - ${sale.user?.mobile}',
-              style: TextStyle(
-                  fontSize: width * 0.048, fontWeight: FontWeight.bold),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${sale.user?.name} - ${sale.user?.mobile}',
+                  style: TextStyle(
+                      fontSize: width * 0.048, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                    onPressed: () {
+                      Get.toNamed(Routes.ADD_EDIT_SALE, arguments: {
+                        "userId": sale.user?.id,
+                        "userName":sale.user?.name,
+                        "userMobile":sale.user?.mobile,
+                      });
+                    },
+                    icon: const Icon(Icons.edit,size: 20,)),
+              ],
             ),
             tilePadding: EdgeInsets.zero,
             childrenPadding: const EdgeInsets.all(0),
@@ -169,12 +174,31 @@ class SaleView extends GetView<SaleController> {
                           elevation: 2,
                         ),
                         onPressed: () {
-                          _showAddProductDialog(
+                          if (sale.products.isNotEmpty) {
+                            // Collect both product IDs and sale prices
+                            final List productDetails = sale.products
+                                .map((product) => {
+                              'id': product.product?.id ?? 'No Product ID',
+                              'salePrice': product.salePrice ?? 0.0 // Use a default value if salePrice is null
+                            })
+                                .toList();
+
+                            _showAddProductDialog(
                               context,
                               sale.user!.name,
                               sale.user!.mobile,
-                              sale.products!.product.productid,
-                              width);
+                              productDetails,  // Pass the list of product details
+                              width,
+                            );
+                          } else {
+                            _showAddProductDialog(
+                              context,
+                              sale.user!.name,
+                              sale.user!.mobile,
+                              [],  // Pass an empty list if no products are added
+                              width,
+                            );
+                          }
                         },
                         icon: const Icon(
                           Icons.add,
@@ -187,6 +211,7 @@ class SaleView extends GetView<SaleController> {
                             color: Colors.white,
                           ),
                         ),
+
                       ),
                     ],
                   ),
@@ -205,7 +230,7 @@ class SaleView extends GetView<SaleController> {
                     if (services != null && services.isNotEmpty) {
                       final serviceLength = product.services.length;
                       for (int i = 0; i < serviceLength; i++) {
-                        servicesPrice = product.services[i].servicePrice!;
+                        servicesPrice =servicesPrice+ product.services[i].servicePrice!;
                       }
                     }
                     return Container(
@@ -311,7 +336,7 @@ class SaleView extends GetView<SaleController> {
     );
   }
 
-  GridView buildGridView(List<Service> services, double width) {
+  buildGridView(List<Service> services, double width) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -339,6 +364,7 @@ class SaleView extends GetView<SaleController> {
                 child: Text(
                   service.serviceType?.name ?? "Not Available",
                   style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.visible, // Allow text to be visible
                 ),
               ),
             ],
@@ -348,12 +374,14 @@ class SaleView extends GetView<SaleController> {
     );
   }
 
+
+
   String formatToMDY(DateTime date) {
     return AppDateFormatters.dateMDY.format(date);
   }
 
-  void _showAddProductDialog(BuildContext context, String name, String mobile,
-      String productId, double width) {
+  void _showAddProductDialog(
+      BuildContext context, String name, String mobile, List addedProductDetails, double width) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -396,6 +424,13 @@ class SaleView extends GetView<SaleController> {
                         itemCount: controller.productList.length,
                         itemBuilder: (context, index) {
                           final product = controller.productList[index];
+                          final addedProduct = addedProductDetails.firstWhere(
+                                (detail) => detail['id'] == product.id.toString(),
+                            orElse: () => {'id': '', 'salePrice': 0.0}, // Default map with empty ID and default salePrice
+                          );
+                          final bool isAdded = addedProduct['id'] == product.id.toString();
+                          final double salePrice = addedProduct['salePrice'] as double;
+
                           return ListTile(
                             title: Text(product.productName,
                                 style: TextStyle(
@@ -403,27 +438,36 @@ class SaleView extends GetView<SaleController> {
                                     fontWeight: FontWeight.bold)),
                             subtitle: Row(
                               children: [
-                                Text(product.productPrice.floor().toString()),
+                                Text("Price: ${product.productPrice.floor()}"),
                               ],
                             ),
                             trailing: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: productId == product.id
+                                backgroundColor: isAdded
                                     ? Colors.grey
                                     : Colors.blue,
                               ),
                               onPressed: () {
-                                productId == product.id
-                                    ? controller.saveSale(
-                                        name: name,
-                                        mobile: mobile,
-                                        productId: product.id)
-                                    : Get.back();
-                                Get.back();
+                                if (isAdded) {
+                                  Get.snackbar(
+                                    'Product Already Added',
+                                    '${product.productName} is already added.',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.white,
+                                  );
+                                } else {
+                                  controller.saveSale(
+                                      name: name,
+                                      mobile: mobile,
+                                      productId: product.id,
+                                      salePrice: product.productPrice.toString()); // Pass salePrice if needed
+                                  Get.back();
+                                }
                               },
-                              child: const Text(
-                                'Add',
-                                style: TextStyle(color: Colors.white),
+                              child: Text(
+                                isAdded ? 'Added' : 'Add',
+                                style: const TextStyle(color: Colors.white),
                               ),
                             ),
                           );
@@ -499,7 +543,8 @@ class SaleView extends GetView<SaleController> {
                           final service = controller.serviceList[index];
                           return ListTile(
                             title: Text(service.name,
-                                style: TextStyle(fontSize: width * 0.04)),
+                                style: TextStyle(fontSize: width * 0.04,fontWeight: FontWeight.bold)),
+                            subtitle: Text("Price:${service.price.floor()}"),
                             trailing: TextButton(
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.symmetric(

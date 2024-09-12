@@ -14,6 +14,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  String? userName; // Variable to store the user's name (before '@' from the email)
 
   @override
   void initState() {
@@ -37,10 +38,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userEmail = prefs.getString('userEmail'); // Fetch the user's email
+
+    if (userEmail != null && userEmail.contains('@')) {
+      // Split the email and get the part before '@'
+      userName = userEmail.split('@')[0];
+    }
+
+    setState(() {}); // Update the UI to reflect the fetched name
 
     Future.delayed(const Duration(seconds: 3), () {
       if (isLoggedIn) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/main');
       } else {
         Navigator.pushReplacementNamed(context, '/signin');
       }
@@ -60,11 +69,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Image(image: AssetImage("assets/app_logo.png")),
-              Text(
+              // Display welcome message with user's name (split from email)
+              if (userName != null) ...[
+                Text(
+                  'Hi, Welcome Back!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                ),
+                Text(
+                  userName!, // Display the part of the email before '@'
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 20), // Add spacing before the logo
+              ],
+              const Image(image: AssetImage("assets/app_logo.png")),
+              const SizedBox(height: 20),
+              const Text(
                 'AquaEssence',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
               ),
