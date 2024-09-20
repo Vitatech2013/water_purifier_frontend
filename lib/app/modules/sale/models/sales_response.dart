@@ -89,7 +89,7 @@ class ProductDetails {
   final String productName;
   final double productPrice;
   final String productImg;
-  final int warranty;
+  final int? warranty;
   final String warrantyType;
   final String description;
   final DateTime createdAt;
@@ -100,7 +100,7 @@ class ProductDetails {
     required this.productName,
     required this.productPrice,
     required this.productImg,
-    required this.warranty,
+    this.warranty,
     required this.warrantyType,
     required this.description,
     required this.createdAt,
@@ -113,7 +113,7 @@ class ProductDetails {
       productName: json['productName'],
       productPrice: json['productPrice'].toDouble(),
       productImg: json['productImg'],
-      warranty: json['warranty'],
+      warranty: json['warranty'] != null ? json['warranty'] : null,
       warrantyType: json['warrantyType'],
       description: json['description'],
       createdAt: DateTime.parse(json['createdAt']),

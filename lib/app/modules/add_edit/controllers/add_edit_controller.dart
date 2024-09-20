@@ -14,8 +14,8 @@ class AddEditController extends GetxController {
   final productDescriptionController = TextEditingController();
   final productPriceController = TextEditingController();
   final warrantyController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
   final productController = Get.find<ProductController>();
+  final loading = false.obs;
 
   // Image File
   Rx<File?> selectedImage = Rx<File?>(null);
@@ -45,7 +45,6 @@ class AddEditController extends GetxController {
     if (product != null) {
       isEditMode.value = true;
       productId.value = product.id ?? '';
-
       productNameController.text = product.productName ?? '';
       productDescriptionController.text = product.description ?? '';
       productPriceController.text = product.productPrice.toString() ?? '';
@@ -80,9 +79,15 @@ class AddEditController extends GetxController {
   }
 
   void validateProductPrice() {
-    productPriceError.value = productPriceController.text.isEmpty
-        ? 'Price is required'
-        : '';
+    if(productPriceController.text.isEmpty){
+      productPriceError.value = 'Product price is required';
+    }
+    else if(!productPriceController.text.isNum){
+      productPriceError.value = 'Product price should be number';
+    }
+    else{
+      productPriceError.value="";
+    }
   }
 
   void validateWarranty() {
@@ -112,6 +117,7 @@ class AddEditController extends GetxController {
         final prefs = await SharedPreferences.getInstance();
         String? token = prefs.getString('token');
         String? ownerId = prefs.getString('ownerId');
+        loading.value=true;
 
         if (token == null || ownerId == null) {
           Get.snackbar(
@@ -163,8 +169,8 @@ class AddEditController extends GetxController {
         if (response.statusCode == 201 || response.statusCode == 200) {
           Get.offNamed(Routes.PRODUCT);
           productController.isEditing.value = true;
-          Future.delayed(const Duration(seconds: 3))
-              .whenComplete(() => productController.fetchProducts());
+          productController.fetchProducts();
+          loading.value=false;
         } else {
           print('Error: ${response.statusCode}');
           Get.snackbar(
@@ -184,6 +190,9 @@ class AddEditController extends GetxController {
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
+      }
+      finally{
+        loading.value=false;
       }
     } else {
       print('Form validation failed');

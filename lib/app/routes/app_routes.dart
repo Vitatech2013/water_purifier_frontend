@@ -12,8 +12,6 @@ abstract class Routes {
   static const ADD_EDIT_SERVICE = _Paths.ADD_EDIT_SERVICE;
   static const SPLASH = _Paths.SPLASH;
   static const ADD_EDIT_SALE = _Paths.ADD_EDIT_SALE;
-  static const ACCOUNT = _Paths.ACCOUNT;
-  static const MAIN = _Paths.MAIN;
 }
 
 abstract class _Paths {
@@ -27,6 +25,4 @@ abstract class _Paths {
   static const ADD_EDIT_SERVICE = '/add-edit-service';
   static const SPLASH = '/splash';
   static const ADD_EDIT_SALE = '/add-edit-sale';
-  static const ACCOUNT = '/account';
-  static const MAIN = '/main';
 }

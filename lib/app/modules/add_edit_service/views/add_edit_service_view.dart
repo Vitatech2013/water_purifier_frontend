@@ -7,6 +7,8 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final loading = controller.loading.value;
     return Scaffold(
       appBar: AppBar(
         title: controller.serviceId.isEmpty
@@ -28,49 +30,62 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding:  EdgeInsets.all(width*0.04),
         child: SingleChildScrollView(
           child:  Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 12),
+                 SizedBox(height: width*0.03),
                 Obx(
                   ()=> _buildTextField(
+                    enabled: !loading,
                     controller: controller.serviceNameController,
                     labelText: 'Service Name',
                     hintText: 'Enter the service name',
                     errorText:controller.serviceNameError.value.isNotEmpty? controller.serviceNameError.value:"",
                     onChanged: (value) => controller.validateServiceName(),
+                    width: width,
                   ),
                 ),
-                const SizedBox(height: 16),
+                 SizedBox(height: width*0.04),
                 Obx(
                   ()=> _buildTextField(
+                    enabled: !loading,
                     controller: controller.serviceDescriptionController,
                     labelText: 'Service Description',
                     hintText: 'Enter a description',
                     maxLines: 3,
                     errorText: controller.serviceDescriptionError.value,
                     onChanged: (value) => controller.validateServiceDescription(),
+                    width: width,
                   ),
                 ),
-                const SizedBox(height: 16),
+                 SizedBox(height: width*0.04),
                 Obx(
                   ()=> _buildTextField(
+                    enabled: !loading,
                     controller: controller.servicePriceController,
                     labelText: 'Service Price',
                     hintText: 'Enter the price',
                     keyboardType: TextInputType.number,
                     errorText: controller.servicePriceError.value,
                     onChanged: (value) => controller.validateServicePrice(),
+                    width: width,
                   ),
                 ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () {
-                    controller.saveService();
-                  },
-                  child: const Text('Save Service'),
+                 SizedBox(height: width*0.06),
+                Obx(
+                  ()=> FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: controller.loading.value?Colors.grey:Colors.blue,
+                    ),
+                    onPressed: () {
+                      if(controller.loading.value==false){
+                      controller.saveService();
+                      }
+                    },
+                    child: const Text('Save Service'),
+                  ),
                 ),
               ],
             ),
@@ -84,9 +99,11 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
     required String labelText,
     required String hintText,
     int maxLines = 1,
+    required bool enabled,
     TextInputType keyboardType = TextInputType.text,
     required String errorText,
     required ValueChanged<String> onChanged,
+    required double width
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,10 +111,11 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
         TextField(
           controller: controller,
           decoration: InputDecoration(
+            enabled: enabled,
             labelText: labelText,
             hintText: hintText,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
+              borderRadius: BorderRadius.circular(width*0.03),
             ),
             errorText: errorText.isNotEmpty ? errorText : null,
           ),

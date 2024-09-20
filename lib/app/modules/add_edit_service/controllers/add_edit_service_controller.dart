@@ -13,6 +13,7 @@ class AddEditServiceController extends GetxController {
   final serviceDescriptionController = TextEditingController();
   final servicePriceController = TextEditingController();
   final serviceController = Get.find<ServiceController>();
+  final loading = false.obs;
 
   RxString serviceId = ''.obs;
 
@@ -55,9 +56,17 @@ class AddEditServiceController extends GetxController {
   }
 
   void validateServicePrice() {
-    servicePriceError.value = servicePriceController.text.isEmpty
-        ? 'Service price is required'
-        : '';
+    if(servicePriceController.text.isEmpty){
+    servicePriceError.value ='Service price is required';
+    }
+    else if(!servicePriceController.text.isNum){
+      servicePriceError.value='Service price should be a number';
+    }else if(double.parse(servicePriceController.text)>0){
+      servicePriceError.value ='Service price should be greater than zero';
+    }
+    else{
+      servicePriceError.value="";
+    }
   }
 
   void validateFields() {
@@ -76,7 +85,7 @@ class AddEditServiceController extends GetxController {
         final prefs = await SharedPreferences.getInstance();
         String? token = prefs.getString('token');
         String? ownerId = prefs.getString('ownerId');
-
+        loading.value = true;
         if (token == null || ownerId == null) {
           print('Authorization token or owner ID not found.');
           return;
@@ -123,6 +132,9 @@ class AddEditServiceController extends GetxController {
         }
       } catch (e) {
         print('Error occurred: $e');
+      }
+      finally{
+        loading.value = false;
       }
     } else {
       print('Form validation failed');

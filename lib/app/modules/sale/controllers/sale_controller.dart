@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
+import 'package:water_purifier/app/core/app_config/app_utils.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 import 'package:water_purifier/app/modules/sale/models/sales_response.dart';
 import 'package:water_purifier/app/modules/service/models/service_response.dart';
@@ -17,6 +18,8 @@ class SaleController extends GetxController {
   final isEditing = false.obs;
   var addedServiceIds = <String>[].obs;
   var phoneNumberFilter = ''.obs;
+  final isInternetAvailable = true.obs;
+  final phoneNumberController = TextEditingController();
   Future<void> fetchSales() async {
     try {
       isLoading(true);
@@ -222,8 +225,9 @@ class SaleController extends GetxController {
     required String productId,
     required String serviceTypeId,
     required double servicePrice,
+    required double salePrice,
   }) async {
-    const String apiUrl = '${AppURL.appBaseUrl}/api/sale/addservice';
+    const String apiUrl = '${AppURL.appBaseUrl}${AppURL.addServiceInsideSale}';
 
     // Retrieve token and ownerId from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
@@ -248,6 +252,7 @@ class SaleController extends GetxController {
       'serviceTypeId': serviceTypeId,
       'serviceDate': DateTime.now().toIso8601String(),
       'servicePrice': servicePrice,
+      'salePrice':salePrice,
       'ownerId': ownerId, // Add ownerId
     });
 
@@ -277,11 +282,18 @@ class SaleController extends GetxController {
     fetchServices();
     isEditing.value=false;
   }
+  Future<void> internetAvailableAndLoadData()async{
+    bool internetAvailable =await AppUtils.checkInternet();
+    isInternetAvailable.value=internetAvailable;
+    if(internetAvailable){
+      fetchSales();
+      fetchProducts();
+      fetchServices();
+    }
+  }
   @override
   void onInit() {
-    fetchSales();
-    fetchProducts();
-    fetchServices();
+   internetAvailableAndLoadData();
     super.onInit();
   }
 }

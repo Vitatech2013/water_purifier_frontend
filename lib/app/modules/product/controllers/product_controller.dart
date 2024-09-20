@@ -4,18 +4,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
+import 'package:water_purifier/app/core/app_config/app_utils.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 
 class ProductController extends GetxController {
-  var products = <Datum>[].obs;  // Using the model Datum
+  var products = <Datum>[].obs; // Using the model Datum
   var isLoading = true.obs;
   final isEditing = false.obs;
+  final isInternetAvailable = true.obs;
+
   @override
   void onInit() {
     super.onInit();
-    fetchProducts();
+    internetAvailableAndLoadData();
   }
-
+  Future<void> internetAvailableAndLoadData()async{
+    bool internetAvailable =await AppUtils.checkInternet();
+    isInternetAvailable.value=internetAvailable;
+    if(internetAvailable){
+      fetchProducts();
+    }
+  }
   Future<void> fetchProducts() async {
     try {
       isLoading.value = true;
@@ -25,7 +34,8 @@ class ProductController extends GetxController {
         print('Authorization token not found');
         return;
       }
-      var request = http.Request('GET', Uri.parse(AppURL.appBaseUrl + AppURL.fetchProducts));
+      var request = http.Request(
+          'GET', Uri.parse(AppURL.appBaseUrl + AppURL.fetchProducts));
       request.headers.addAll({
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -59,9 +69,24 @@ class ProductController extends GetxController {
     isEditing.value = false;
     fetchProducts();
   }
-  void fetchingProducts(){
-    isEditing.value=true;
+
+  void fetchingProducts() {
+    isEditing.value = true;
     Future.delayed(const Duration(seconds: 1)).then((_) => fetchProducts());
+  }
+
+  void showAlertDialogue(String id) {
+    AppUtils.showModernDialog(
+        title: "Are you sure you want to delete",
+        button1Text: "Yes",
+        button1Action: () {
+          deleteProduct(id);
+          Get.back();
+        },
+        button2Text: "No",
+        button2Action: () {
+          Get.back();
+        });
   }
 
   Future<void> deleteProduct(String productId) async {
@@ -72,7 +97,8 @@ class ProductController extends GetxController {
         print('Authorization token not found');
         return;
       }
-      var request = http.Request('DELETE', Uri.parse('${AppURL.appBaseUrl}${AppURL.deleteProduct}$productId'));
+      var request = http.Request('DELETE',
+          Uri.parse('${AppURL.appBaseUrl}${AppURL.deleteProduct}$productId'));
       request.headers.addAll({
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -81,8 +107,10 @@ class ProductController extends GetxController {
       if (response.statusCode == 200) {
         print('Product deleted successfully');
         isEditing.value = true;
-        Future.delayed(const Duration(seconds: 1)).then((_) => deletingProduct());
-        products.value = products.where((product) => product.id != productId).toList();
+        Future.delayed(const Duration(seconds: 1))
+            .then((_) => deletingProduct());
+        products.value =
+            products.where((product) => product.id != productId).toList();
         products.refresh();
       } else {
         print('Failed to delete product: ${response.reasonPhrase}');

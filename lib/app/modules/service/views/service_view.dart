@@ -16,14 +16,14 @@ class ServiceView extends GetView<ServiceController> {
     return WillPopScope(
       onWillPop: () async {
         log('Physical back button pressed');
-        Get.offAllNamed(Routes.MAIN);
+        Get.offAllNamed(Routes.HOME);
         return false;
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             onPressed: () {
-              Get.offAllNamed(Routes.MAIN);
+              Get.offAllNamed(Routes.HOME);
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -38,6 +38,33 @@ class ServiceView extends GetView<ServiceController> {
           backgroundColor: Colors.blue,
         ),
         body: Obx(() {
+          if(!controller.isInternetAvailable.value){
+            return Center(
+              child: Padding(
+                padding:  EdgeInsets.symmetric(horizontal: width*0.12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Icon(Icons.signal_wifi_connected_no_internet_4,size: width/2,color: Colors.redAccent,),
+                    SizedBox(height: width*0.04),
+                    Text(
+                      "Please check your internet connection.",
+                      style: textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: width*0.04),
+                    FilledButton(
+                      onPressed: () {
+                        controller.internetAvailableAndLoadData();
+                      },
+                      child: const Text("TryAgain"),
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -69,66 +96,74 @@ class ServiceView extends GetView<ServiceController> {
                     final service = controller.services[index];
                     final serviceId = service.id;
 
-                    return Card(
-                      elevation: width * 0.017,
-                      margin: EdgeInsets.symmetric(vertical: width * 0.02),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(width * 0.02),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                            top: width * 0.04,
-                            right: width * 0.04,
-                            bottom: width * 0.115,
-                            left: width * 0.04),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              service.name,
-                              style: textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            SizedBox(height: width * 0.017),
-                            Text(
-                              '💰 ${service.price}',
-                              style: textTheme.titleMedium?.copyWith(
-                                color: Colors.green[700],
-                              ),
-                            ),
-                            SizedBox(height: width * 0.02),
-                            Text(
-                              service.description,
-                              style: textTheme.titleMedium?.copyWith(
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            SizedBox(height: width * 0.03),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    Get.toNamed(Routes.ADD_EDIT_SERVICE,
-                                        arguments: service);
-                                  },
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.blue),
-                                  tooltip: 'Edit',
+                    return InkWell(
+                      onTap: ()
+                      {
+                        Get.toNamed(Routes.ADD_EDIT_SERVICE,
+                            arguments: service);
+                      },
+                      child: Card(
+                        elevation: width * 0.017,
+                        margin: EdgeInsets.symmetric(vertical: width * 0.02),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(width * 0.02),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                              top: width * 0.04,
+                              right: width * 0.04,
+                              bottom: width * 0.115,
+                              left: width * 0.04),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                service.name,
+                                style: textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
                                 ),
-                                IconButton(
-                                  onPressed: () {
-                                    controller.deleteService(serviceId);
-                                  },
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  tooltip: 'Delete',
+                              ),
+                              SizedBox(height: width * 0.017),
+                              Text(
+                                '💰 ${service.price}',
+                                style: textTheme.titleMedium?.copyWith(
+                                  color: Colors.green[700],
                                 ),
-                              ],
-                            ),
-                          ],
+                              ),
+                              SizedBox(height: width * 0.02),
+                              Text(
+                                service.description,
+                                style: textTheme.titleMedium?.copyWith(
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              SizedBox(height: width * 0.03),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      Get.toNamed(Routes.ADD_EDIT_SERVICE,
+                                          arguments: service);
+                                    },
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
+                                    tooltip: 'Edit',
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      controller.showAlertDialogue(serviceId);
+                                      // controller.deleteService(serviceId);
+                                    },
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
+                                    tooltip: 'Delete',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

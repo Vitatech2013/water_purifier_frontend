@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:water_purifier/app/core/app_config/app_assets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,10 +12,11 @@ class SplashScreen extends StatefulWidget {
   }
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  String? userName; // Variable to store the user's name (before '@' from the email)
+  String? userName;
 
   @override
   void initState() {
@@ -38,18 +40,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    final userEmail = prefs.getString('userEmail'); // Fetch the user's email
+    final userEmail = prefs.getString('userEmail');
 
     if (userEmail != null && userEmail.contains('@')) {
-      // Split the email and get the part before '@'
       userName = userEmail.split('@')[0];
     }
 
-    setState(() {}); // Update the UI to reflect the fetched name
+    setState(() {});
 
     Future.delayed(const Duration(seconds: 3), () {
       if (isLoggedIn) {
-        Navigator.pushReplacementNamed(context, '/main');
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         Navigator.pushReplacementNamed(context, '/signin');
       }
@@ -64,6 +65,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -72,28 +75,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Display welcome message with user's name (split from email)
               if (userName != null) ...[
                 Text(
                   'Hi, Welcome Back!',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.grey[800]),
+                  style: TextStyle(
+                      fontSize: width * 0.07,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[800]),
                 ),
                 Text(
-                  userName!, // Display the part of the email before '@'
-                  style: const TextStyle(
-                    fontSize: 18,
+                  userName!,
+                  style: TextStyle(
+                    fontSize: width * 0.07,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 20), // Add spacing before the logo
+                SizedBox(height: width * 0.005),
               ],
-              const Image(image: AssetImage("assets/app_logo.png")),
-              const SizedBox(height: 20),
-              const Text(
-                'AquaEssence',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
+              Image.asset(AppAssets.logo,height: height/2,)
             ],
           ),
         ),

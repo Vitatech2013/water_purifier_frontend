@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:water_purifier/app/core/app_config/app_assets.dart';
 import 'package:water_purifier/app/modules/signin/controllers/signin_controller.dart';
 
 class SigninView extends GetView<SigninController> {
@@ -8,34 +9,46 @@ class SigninView extends GetView<SigninController> {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       backgroundColor: const Color(0XFFFFFFFF),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28),
+        padding: EdgeInsets.symmetric(horizontal: width * 0.07),
         child: Form(
           key: controller.formKey,
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              Image.asset("assets/loginlogo.jpg"),
+              Image.asset(AppAssets.loginLogo,
+                  width: width / 2, height: height / 2.2),
               Text(
                 "Login",
-                style: Theme.of(context).textTheme.headlineLarge,
+                style: textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: width * 0.03),
               Row(
                 children: [
                   Text(
                     "@",
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        fontWeight: FontWeight.bold, color: Colors.grey),
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: width * 0.02),
                   Expanded(
                     child: TextFormField(
+                      enabled: !controller.loading.value,
                       controller: controller.emailController,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 18),
+                      style: textTheme.titleLarge?.copyWith(
+                        fontSize: width * 0.043,
+                      ),
+                      textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         hintText: "Email ID",
                         hintStyle: TextStyle(color: Colors.grey),
@@ -46,20 +59,24 @@ class SigninView extends GetView<SigninController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: width * 0.043),
               Row(
                 children: [
                   const Icon(
                     Icons.lock,
                     color: Colors.grey,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: width * 0.02),
                   Expanded(
                     child: Obx(
-                          () => TextFormField(
+                      () => TextFormField(
+                        enabled: !controller.loading.value,
                         controller: controller.passwordController,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: width * 0.043,
+                        ),
+                        textInputAction: TextInputAction.done,
                         obscureText: !controller.passwordVisibility.value,
                         decoration: InputDecoration(
                           hintText: "Password",
@@ -68,7 +85,7 @@ class SigninView extends GetView<SigninController> {
                           suffixIcon: IconButton(
                             onPressed: () {
                               controller.passwordVisibility.value =
-                              !controller.passwordVisibility.value;
+                                  !controller.passwordVisibility.value;
                             },
                             icon: Icon(
                               controller.passwordVisibility.value
@@ -79,6 +96,9 @@ class SigninView extends GetView<SigninController> {
                           ),
                         ),
                         validator: controller.validatePassword,
+                        onFieldSubmitted: (_) {
+                          controller.signIn();
+                        },
                       ),
                     ),
                   ),
@@ -88,12 +108,18 @@ class SigninView extends GetView<SigninController> {
               FilledButton(
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(width * 0.025),
                   ),
-                  backgroundColor: Colors.blue
+                  backgroundColor: colorScheme.primary,
                 ),
                 onPressed: controller.signIn,
-                child: const Text("Login"),
+                child: Text(
+                  "Login",
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ],
           ),

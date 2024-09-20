@@ -42,54 +42,73 @@ class AddEditView extends GetView<AddEditController> {
           child: Column(
             children: [
               Obx(() {
-                if (controller.selectedImage.value != null) {
-                  print("Inside selectedImage");
-                  return Image.file(controller.selectedImage.value!,
-                      height: width/2.74, fit: BoxFit.cover);
-                } else if (isLocalFile) {
-                  return Image.file(File(controller.initialImage.value),
-                      height: width/2.74, fit: BoxFit.cover);
-                } else if (controller.initialImage.value.isEmpty) {
+                if (controller.initialImage.value.isEmpty) {
                   return GestureDetector(
                     onTap: () => controller.pickImage(ImageSource.camera),
                     child: Container(
-                      height: width/2.74,
-                      width: width/1.65,
+                      height: width / 2.74,
+                      width: width / 1.65,
                       color: Colors.grey[300],
                       child: Icon(Icons.camera_alt,
-                          size: width*0.11, color: Colors.grey[700]),
+                          size: width * 0.11, color: Colors.grey[700]),
                     ),
                   );
                 } else {
                   return InkWell(
                     onTap: () {
-                      print("Inside network");
                       controller.pickImage(ImageSource.camera);
                     },
                     child:
-                        Image.network(imageUrl, height: 150, fit: BoxFit.cover),
+                    Stack(
+                      children: [
+                        Image.network(
+                          imageUrl,
+                          height: width / 2.5,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Icon(
+                              Icons.camera_alt,
+                              color: Colors.grey,
+                              size: width/8,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   );
                 }
               }),
-              const SizedBox(height: 16),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                  horizontal: 102,
-                )),
-                onPressed: () => controller.pickImage(ImageSource.gallery),
-                child: const Text('Gallery'),
+              SizedBox(height: width * 0.04),
+              Obx(
+                () => FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor:
+                        controller.loading.value ? Colors.grey : Colors.blue,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: width / 4,
+                    ),
+                  ),
+                  onPressed: () => controller.pickImage(ImageSource.gallery),
+                  child: const Text('Gallery'),
+                ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: width * 0.04),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Obx(() {
                     return TextField(
                       controller: controller.productNameController,
+                      enabled: !controller.loading.value,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Name',
                         errorText: controller.productNameError.value.isNotEmpty
                             ? controller.productNameError.value
@@ -99,14 +118,15 @@ class AddEditView extends GetView<AddEditController> {
                       textInputAction: TextInputAction.next,
                     );
                   }),
-                  const SizedBox(height: 12),
+                  SizedBox(height: width * 0.03),
                   Obx(() {
                     return TextField(
                       controller: controller.productDescriptionController,
+                      enabled: !controller.loading.value,
                       maxLines: 3,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Description',
                         errorText:
                             controller.productDescriptionError.value.isNotEmpty
@@ -118,13 +138,14 @@ class AddEditView extends GetView<AddEditController> {
                       textInputAction: TextInputAction.next,
                     );
                   }),
-                  const SizedBox(height: 12),
+                  SizedBox(height: width * 0.03),
                   Obx(() {
                     return TextField(
                       controller: controller.productPriceController,
+                      enabled: !controller.loading.value,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Price',
                         errorText: controller.productPriceError.value.isNotEmpty
                             ? controller.productPriceError.value
@@ -135,16 +156,18 @@ class AddEditView extends GetView<AddEditController> {
                       textInputAction: TextInputAction.next,
                     );
                   }),
-                  const SizedBox(height: 12),
+                  SizedBox(height: width * 0.03),
                   Obx(() {
                     return Row(
                       children: [
                         Expanded(
                           child: TextField(
+                            enabled: !controller.loading.value,
                             controller: controller.warrantyController,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                                  borderRadius:
+                                      BorderRadius.circular(width * 0.03)),
                               labelText: 'Warranty',
                               errorText:
                                   controller.warrantyError.value.isNotEmpty
@@ -156,7 +179,7 @@ class AddEditView extends GetView<AddEditController> {
                             textInputAction: TextInputAction.done,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: width * 0.06),
                         Expanded(
                           child: Obx(() {
                             return DropdownButton<String>(
@@ -184,12 +207,19 @@ class AddEditView extends GetView<AddEditController> {
                       ],
                     );
                   }),
-                  const SizedBox(height: 20),
-                  FilledButton(
-                    onPressed: () {
-                      controller.saveProduct();
-                    },
-                    child: const Text('Save Product'),
+                  SizedBox(height: width * 0.05),
+                  Obx(
+                      ()=> FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: controller.loading.value?Colors.grey:Colors.blue
+                      ),
+                      onPressed: () {
+                        if(controller.loading.value==false){
+                          controller.saveProduct();
+                        }
+                      },
+                      child: const Text('Save Product'),
+                    ),
                   ),
                 ],
               ),

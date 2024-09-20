@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
+import 'package:water_purifier/app/core/app_config/app_utils.dart';
 import 'package:water_purifier/app/modules/service/models/service_response.dart';
 
 class ServiceController extends GetxController {
@@ -10,6 +11,7 @@ class ServiceController extends GetxController {
   final services = <ServiceResponse>[].obs;
   final isLoading = true.obs;
   final isEditing = false.obs;
+  final isInternetAvailable = true.obs;
 
   Future<void> fetchServices() async {
     try {
@@ -56,6 +58,19 @@ class ServiceController extends GetxController {
       isLoading.value = false;
       isEditing.value = false;
     }
+  }
+  void showAlertDialogue(String serviceId) {
+    AppUtils.showModernDialog(
+        title: "Are you sure you want to delete",
+        button1Text: "Yes",
+        button1Action: () {
+          deleteService(serviceId);
+          Get.back();
+        },
+        button2Text: "No",
+        button2Action: () {
+          Get.back();
+        });
   }
 
   Future<void> deleteService(String serviceId) async {
@@ -105,10 +120,16 @@ class ServiceController extends GetxController {
     isEditing.value = false;
     fetchServices();
   }
-
+  Future<void> internetAvailableAndLoadData()async{
+    bool internetAvailable =await AppUtils.checkInternet();
+    isInternetAvailable.value=internetAvailable;
+    if(internetAvailable){
+      fetchServices();
+    }
+  }
   @override
   void onInit() {
-    fetchServices();
+   internetAvailableAndLoadData();
     super.onInit();
   }
 }

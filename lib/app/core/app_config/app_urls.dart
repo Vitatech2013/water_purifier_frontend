@@ -18,6 +18,8 @@ class AppURL {
   //sales
   static const addSale = '/api/sale/add';
   static const fetchSale = '/api/sale';
+  //addServiceInsideSale
+  static const addServiceInsideSale = '/api/sale/addservice';
 
   //edit person
     static const editPerson ='/api/user/users/';

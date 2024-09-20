@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
+import 'package:water_purifier/app/core/app_config/app_utils.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
 
 class SigninController extends GetxController {
@@ -11,6 +12,7 @@ class SigninController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final loading = false.obs;
 
   @override
   void onClose() {
@@ -45,6 +47,7 @@ class SigninController extends GetxController {
 
   Future<void> signIn() async {
     if (validateForm()) {
+      loading.value=true;
       var headers = {
         'Content-Type': 'application/json',
       };
@@ -61,6 +64,7 @@ class SigninController extends GetxController {
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
+        loading.value=false;
         String responseBody = await response.stream.bytesToString();
         var decodedResponse = jsonDecode(responseBody);
 
@@ -69,22 +73,12 @@ class SigninController extends GetxController {
         await prefs.setString('userEmail', emailController.text.trim());
         await prefs.setString("ownerId", decodedResponse["_id"]);
         await prefs.setString("token", decodedResponse["token"]);
-
-        // Extract username from email (before '@')
         String email = emailController.text.trim();
         String username = email.split('@')[0];
-        Get.snackbar(
-          'Welcome, $username!',
-          'Hi $username, Here you can go!',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.blueAccent,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-        );
-
-        // Navigate to home page after greeting
-        Get.offAllNamed(Routes.MAIN);
+        AppUtils.showSnackBar(title:'Welcome, $username!',message:'Hi $username, Here you can go!' );
+        Get.offAllNamed(Routes.HOME);
       } else {
+        loading.value = false;
         Get.snackbar('Login Failed', 'Invalid email or password');
       }
     }

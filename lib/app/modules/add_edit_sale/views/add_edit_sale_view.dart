@@ -8,6 +8,8 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final loading = controller.loading.value;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -19,22 +21,26 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
             color: Colors.white,
           ),
         ),
-        title:  Text(
-          controller.args.isEmpty?'Add Sales':'Edit Person',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Obx(
+          () => Text(
+            controller.userId.isEmpty ? 'Add Sales' : 'Edit Person',
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
         ),
         scrolledUnderElevation: 0,
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(width * 0.04),
         child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 12),
-              Obx(
-                    () => TextField(
+          child: Obx(
+            () => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(height: width * 0.03),
+                TextField(
+                  enabled: !loading,
                   controller: controller.nameController,
                   decoration: InputDecoration(
                     labelText: 'Name',
@@ -47,86 +53,97 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         : null,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Obx(
-                    () => TextField(
+                SizedBox(height: width * 0.04),
+                TextField(
+                  enabled: !loading,
                   controller: controller.mobileNumberController,
-                    keyboardType: TextInputType.phone,
+                  keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     labelText: 'Mobile Number',
                     hintText: 'Enter the mobile number',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+                      borderRadius: BorderRadius.circular(width * 0.03),
                     ),
                     errorText: controller.mobileNumberError.value.isNotEmpty
                         ? controller.mobileNumberError.value
                         : null,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-             controller.args.isEmpty? Obx(
-                ()=> _buildExpansionTile(
-                  title: 'Products',
-                  items: controller.products,
-                  groupValue: controller.selectedProduct.value,
-                  onChanged: (value) {
-                    final selectedProduct = controller.products
-                        .firstWhere((product) => product.productName == value);
-                    controller.productSelected(selectedProduct.productPrice.toString());
-                    controller.selectedProduct(value);
-                    controller.selectedProductId.value = selectedProduct.id;
+                SizedBox(height: width * 0.04),
+                controller.userId.isEmpty
+                    ? _buildExpansionTile(
+                        title: 'Products',
+                        items: controller.products,
+                        groupValue:
+                            controller.selectedProduct.value?.productName ?? "",
+                        width: width,
+                        onChanged: (value) {
+                          final selectedProduct = controller.products
+                              .firstWhere(
+                                  (product) => product.productName == value);
+                          controller.productSelected(
+                              selectedProduct.productPrice.toString());
+                          controller.selectedProduct.value = selectedProduct;
+                          controller.selectedProductId.value =
+                              selectedProduct.id;
+                        },
+                        errorText: controller.productError.value,
+                      )
+                    : const LimitedBox(),
+                SizedBox(height: width * 0.04),
+                controller.userId.isEmpty
+                    ? TextField(
+                        enabled: !loading,
+                        controller: controller.productPriceController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Product price',
+                          hintText: 'Enter product price',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(width * 0.03),
+                          ),
+                          errorText: controller.productError.value.isNotEmpty
+                              ? controller.productError.value
+                              : null,
+                        ),
+                        readOnly: true,
+                      )
+                    : const LimitedBox(),
+                SizedBox(height: width * 0.04),
+                controller.userId.isEmpty
+                    ? TextField(
+                        enabled: !loading,
+                        controller: controller.salePriceController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Sale price',
+                          hintText: 'Enter sale price',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(width * 0.03),
+                          ),
+                          errorText: controller.salePriceError.value.isNotEmpty
+                              ? controller.salePriceError.value
+                              : null,
+                        ),
+                      )
+                    : const LimitedBox(),
+                SizedBox(height: width * 0.04),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: loading ? Colors.grey : Colors.blue,
+                  ),
+                  onPressed: () {
+                    controller.userId.isEmpty
+                        ? controller.saveSale()
+                        : controller.editPerson();
                   },
-                  errorText: controller.productError.value,
-                ),
-              ):const LimitedBox(),
-              const SizedBox(height: 16),
-            controller.args.isEmpty?  Obx(
-                    () => TextField(
-                  controller: controller.productPriceController,
-                    keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Product price',
-                    hintText: 'Enter product price',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    errorText: controller.productError.value.isNotEmpty
-                        ? controller.productError.value
-                        : null,
-                  ),
-                  readOnly: true,
-                ),
-              ):LimitedBox(),
-              const SizedBox(height: 16),
-             controller.args.isEmpty? Obx(
-                    () => TextField(
-                  controller: controller.salePriceController,
-                    keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Sale price',
-                    hintText: 'Enter sale price',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    errorText: controller.salePriceError.value.isNotEmpty
-                        ? controller.salePriceError.value
-                        : null,
+                  child: Text(
+                    controller.userId.isEmpty ? 'Save Sale' : 'Edit Person',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-              ):LimitedBox(),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () {
-                 controller.args.isEmpty? controller.saveSale(): controller.editPerson();
-                },
-                child:  Text(
-                  controller.args.isEmpty?'Save Sale':'Edit Person',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -139,13 +156,14 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
     required String groupValue,
     required void Function(String) onChanged,
     required String errorText,
+    required double width,
   }) {
     return ExpansionTile(
       shape: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(width * 0.03),
       ),
       collapsedShape: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(width * 0.03),
       ),
       title: Text(title),
       children: [
@@ -161,13 +179,6 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                   onChanged(value ?? '');
                 },
               ),
-            // if (errorText.isNotEmpty)
-            //   Padding(
-            //     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            //     child: Text(
-            //       errorText,
-            //       style: TextStyle(color: Colors.red, fontSize: 12),
-            //     ),
             //   ),
           ],
         ),

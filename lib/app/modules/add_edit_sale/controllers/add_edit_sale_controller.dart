@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 import 'package:water_purifier/app/modules/sale/controllers/sale_controller.dart';
@@ -15,9 +16,10 @@ class AddEditSaleController extends GetxController {
   final salePriceController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final saleController = Get.find<SaleController>();
+  final loading = false.obs;
 
   RxString userId = ''.obs;
-  RxString selectedProduct = ''.obs;
+  Rx<Datum?> selectedProduct = Rx<Datum?>(null);
   RxList<Datum> products = <Datum>[].obs;
   final selectedProductId = Rx<String?>(null);
 
@@ -29,25 +31,56 @@ class AddEditSaleController extends GetxController {
   RxString productError = ''.obs;
   RxString salePriceError = ''.obs;
   var args = {};
-
   @override
   void onInit() {
     super.onInit();
-    fetchProducts();
-    if (Get.arguments != null && Get.arguments is Map) {
-      args = Get.arguments;
-      nameController.text = args["userName"] ?? "";
-      mobileNumberController.text = args["userMobile"] ?? "";
-      userId.value = args["userId"] ?? 0;
-    } else {
-      nameController.text = "";
-      mobileNumberController.text = "";
-      userId.value = "";
-    }
-    print(args.toString());
+
+    fetchProducts().then((_) {
+      if (Get.arguments != null && Get.arguments is Map) {
+        args = Get.arguments;
+        if(args["userName"] != null) {
+          nameController.text = args["userName"] ?? "";
+          mobileNumberController.text = args["userMobile"] ?? "";
+          userId.value = args["userId"] ?? 0;
+        } else {
+          nameController.text = args["name"];
+          mobileNumberController.text = args["mobile"];
+          String productId = args["productId"];
+          selectProductById(productId); // Ensure this is called after products are fetched
+        }
+      } else {
+        nameController.text = "";
+        mobileNumberController.text = "";
+        userId.value = "";
+      }
+      print(args.toString());
+    });
+
     nameController.addListener(_validateName);
     mobileNumberController.addListener(_validateMobileNumber);
     salePriceController.addListener(_validateSalePrice);
+  }
+  Future<void> sendThankYouMessage(String mobileNumber,String message) async{
+    final smsUri = Uri.parse('sms:$mobileNumber?body=$message');
+    if(await canLaunchUrl(smsUri)){
+      await launchUrl(smsUri);
+    }else{
+      print("Could not send SMS to $mobileNumber");
+      Get.snackbar('Error', 'Failed to send SMS. Please try again.');
+    }
+  }
+  void selectProductById(String productId) {
+    final selectedProd = products.firstWhereOrNull((product) {
+      return product.id == productId;
+    },);
+    if (selectedProd != null) {
+      selectedProduct.value = selectedProd;
+      selectedProductId.value = selectedProd.id;
+      productPriceController.text = selectedProd.productPrice.toString();
+    }
+    else {
+      print("Product with id $productId not found.");
+    }
   }
 
   void _validateName() {
@@ -55,8 +88,17 @@ class AddEditSaleController extends GetxController {
   }
 
   void _validateSalePrice() {
-    salePriceError.value =
-        salePriceController.text.isEmpty ? 'Sale Price is required' : '';
+    if(salePriceController.text.isEmpty)
+      {
+        salePriceError.value = 'Sale Price is required';
+      }
+    else if(!salePriceController.text.isNum)
+      {
+        salePriceError.value = 'Sale price should be number';
+      }
+    else{
+      salePriceError.value="";
+    }
   }
 
   void _validateMobileNumber() {
@@ -128,7 +170,7 @@ class AddEditSaleController extends GetxController {
         final prefs = await SharedPreferences.getInstance();
         String? token = prefs.getString('token');
         String? ownerId = prefs.getString('ownerId');
-
+        loading.value = true;
         if (token == null || ownerId == null) {
           print('Authorization token or owner ID not found.');
           return;
@@ -159,6 +201,8 @@ class AddEditSaleController extends GetxController {
         if (response.statusCode == 201 || response.statusCode == 200) {
           print('Sale added successfully');
           await response.stream.bytesToString();
+
+          sendThankYouMessage(mobileNumberController.text, 'Thank you for purchasing ${selectedProduct.value?.productName}');
           Get.offNamed(Routes.SALE);
           saleController.isEditing.value = true;
           Future.delayed(const Duration(seconds: 1))
@@ -170,6 +214,8 @@ class AddEditSaleController extends GetxController {
         }
       } catch (e) {
         print('Error occurred: $e');
+      }finally{
+        loading.value = false;
       }
     } else {
       print('Form validation failed');
