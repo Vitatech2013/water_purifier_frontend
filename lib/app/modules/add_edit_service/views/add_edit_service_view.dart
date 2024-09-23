@@ -36,18 +36,23 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                  SizedBox(height: width*0.03),
-                Obx(
-                  ()=> _buildTextField(
-                    enabled: !loading,
+                Obx(() {
+                  return TextField(
                     controller: controller.serviceNameController,
-                    labelText: 'Service Name',
-                    hintText: 'Enter the service name',
-                    errorText:controller.serviceNameError.value.isNotEmpty? controller.serviceNameError.value:"",
+                    enabled: !controller.loading.value,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(width * 0.03)),
+                      labelText: 'Service Name',
+                      errorText: controller.serviceNameError.value.isNotEmpty
+                          ? controller.serviceNameError.value
+                          : null,
+                    ),
                     onChanged: (value) => controller.validateServiceName(),
-                    width: width,
-                  ),
-                ),
-                 SizedBox(height: width*0.04),
+                    textInputAction: TextInputAction.next,
+                  );
+                }),
+                SizedBox(height: width*0.04),
                 Obx(
                   ()=> _buildTextField(
                     enabled: !loading,
@@ -55,7 +60,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     labelText: 'Service Description',
                     hintText: 'Enter a description',
                     maxLines: 3,
-                    errorText: controller.serviceDescriptionError.value,
+                    errorText: controller.serviceDescriptionError.value.isNotEmpty?controller.serviceDescriptionError.value:null,
                     onChanged: (value) => controller.validateServiceDescription(),
                     width: width,
                   ),
@@ -68,7 +73,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     labelText: 'Service Price',
                     hintText: 'Enter the price',
                     keyboardType: TextInputType.number,
-                    errorText: controller.servicePriceError.value,
+                    errorText: controller.servicePriceError.value.isNotEmpty?controller.servicePriceError.value:null,
                     onChanged: (value) => controller.validateServicePrice(),
                     width: width,
                   ),
@@ -101,7 +106,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
     int maxLines = 1,
     required bool enabled,
     TextInputType keyboardType = TextInputType.text,
-    required String errorText,
+     String? errorText,
     required ValueChanged<String> onChanged,
     required double width
   }) {
@@ -117,7 +122,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(width*0.03),
             ),
-            errorText: errorText.isNotEmpty ? errorText : null,
+            errorText: errorText,
           ),
           maxLines: maxLines,
           keyboardType: keyboardType,

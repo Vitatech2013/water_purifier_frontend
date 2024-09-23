@@ -201,6 +201,8 @@ class ProductView extends GetView<ProductController> {
                                               ?.copyWith(color: Colors.green),
                                         ),
                                         SizedBox(height: width * 0.01),
+                                        product.warranty.toString()=="null"?Text("No Warranty",style: textTheme.bodyMedium?.copyWith(
+                                            color: Colors.grey[600]),):
                                         Text(
                                           'Warranty: ${product.warranty ?? ''} ${_getWarrantyLabel(product.warranty, product.warrantyType)}',
                                           style: textTheme.bodyMedium?.copyWith(

@@ -14,8 +14,6 @@ class AddEditView extends GetView<AddEditController> {
     final width = MediaQuery.of(context).size.width;
     final imageUrl =
         '${AppURL.appBaseUrl}/uploads/${controller.initialImage.value}';
-    final isLocalFile = controller.initialImage.value.startsWith('file://');
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(

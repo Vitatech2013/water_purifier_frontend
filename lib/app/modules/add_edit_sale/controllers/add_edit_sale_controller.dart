@@ -46,19 +46,19 @@ class AddEditSaleController extends GetxController {
           nameController.text = args["name"];
           mobileNumberController.text = args["mobile"];
           String productId = args["productId"];
-          selectProductById(productId); // Ensure this is called after products are fetched
+          selectProductById(productId);
         }
-      } else {
+      } else  {
         nameController.text = "";
         mobileNumberController.text = "";
         userId.value = "";
       }
       print(args.toString());
     });
-
-    nameController.addListener(_validateName);
-    mobileNumberController.addListener(_validateMobileNumber);
-    salePriceController.addListener(_validateSalePrice);
+    //
+    // nameController.addListener(_validateName);
+    // mobileNumberController.addListener(_validateMobileNumber);
+    // salePriceController.addListener(_validateSalePrice);
   }
   Future<void> sendThankYouMessage(String mobileNumber,String message) async{
     final smsUri = Uri.parse('sms:$mobileNumber?body=$message');
@@ -83,11 +83,11 @@ class AddEditSaleController extends GetxController {
     }
   }
 
-  void _validateName() {
+  void validateName() {
     nameError.value = nameController.text.isEmpty ? 'Name is required' : '';
   }
 
-  void _validateSalePrice() {
+  void validateSalePrice() {
     if(salePriceController.text.isEmpty)
       {
         salePriceError.value = 'Sale Price is required';
@@ -96,29 +96,46 @@ class AddEditSaleController extends GetxController {
       {
         salePriceError.value = 'Sale price should be number';
       }
+    else if(double.parse(salePriceController.text)<=0){
+      salePriceError.value='Sale price should be greater than zero';
+    }
     else{
       salePriceError.value="";
     }
   }
 
-  void _validateMobileNumber() {
+  void validateMobileNumber() {
     final pattern = RegExp(r'^[6-9]\d{9}$');
-    mobileNumberError.value = !pattern.hasMatch(mobileNumberController.text)
-        ? 'Please enter a valid Indian mobile number'
-        : '';
+    String enteredNumber = mobileNumberController.text.trim();
+
+    if (enteredNumber.isEmpty) {
+      mobileNumberError.value = 'Mobile number is required';
+    }
+    else if (!pattern.hasMatch(enteredNumber)) {
+      mobileNumberError.value = 'Please enter a valid Indian mobile number';
+    }
+    else if (saleController.allReadyAddedPhoneNumbers.contains(enteredNumber)) {
+      mobileNumberError.value = 'This mobile number has already been added';
+    }
+    // If all validations pass
+    else {
+      mobileNumberError.value=""; // Clear the error
+      // Proceed with your logic
+    }
   }
 
+
   void validateFields() {
-    _validateName();
-    _validateMobileNumber();
-    _validateSalePrice();
+    validateName();
+    validateMobileNumber();
+    validateSalePrice();
     productError.value =
         selectedProductId.value == null ? 'Please select a product' : '';
   }
 
   void editPersonValidateField() {
-    _validateName();
-    _validateMobileNumber();
+    validateName();
+    validateMobileNumber();
   }
 
   void productSelected(String value) {

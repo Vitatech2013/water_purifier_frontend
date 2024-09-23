@@ -35,9 +35,6 @@ class AddEditServiceController extends GetxController {
       print('Unexpected type for Get.arguments: ${service.runtimeType}');
     }
 
-    serviceNameController.addListener(validateServiceName);
-    serviceDescriptionController.addListener(validateServiceDescription);
-    servicePriceController.addListener(validateServicePrice);
   }
 
   void validateServiceName() {
@@ -61,7 +58,7 @@ class AddEditServiceController extends GetxController {
     }
     else if(!servicePriceController.text.isNum){
       servicePriceError.value='Service price should be a number';
-    }else if(double.parse(servicePriceController.text)>0){
+    }else if(double.parse(servicePriceController.text)<=0){
       servicePriceError.value ='Service price should be greater than zero';
     }
     else{

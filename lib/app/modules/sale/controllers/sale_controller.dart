@@ -12,6 +12,7 @@ import 'package:water_purifier/app/modules/service/models/service_response.dart'
 class SaleController extends GetxController {
   var isLoading = true.obs;
   var salesList = <Record>[].obs;
+  var allReadyAddedPhoneNumbers = <String>[].obs;
   var filteredSalesList = <Record>[].obs;
   var productList = <Datum>[].obs;
   var serviceList = <ServiceResponse>[].obs;
@@ -48,6 +49,12 @@ class SaleController extends GetxController {
         SalesResponse salesResponse = SalesResponse.fromJson(jsonData);
         isEditing.value = false;
         salesList.assignAll(salesResponse.data);
+        for(var number in salesList){
+          if(number.user?.mobile!=null) {
+            allReadyAddedPhoneNumbers.add(number.user!.mobile);
+          }
+          print(number.user?.mobile);
+        }
       } else {
         print(response.body.toString());
       }

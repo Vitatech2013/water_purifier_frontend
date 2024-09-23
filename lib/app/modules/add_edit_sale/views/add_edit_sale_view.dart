@@ -52,6 +52,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         ? controller.nameError.value
                         : null,
                   ),
+                  onChanged: (value)=>controller.validateName,
                 ),
                 SizedBox(height: width * 0.04),
                 TextField(
@@ -68,6 +69,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         ? controller.mobileNumberError.value
                         : null,
                   ),
+                  onChanged: (value)=>controller.validateMobileNumber,
                 ),
                 SizedBox(height: width * 0.04),
                 controller.userId.isEmpty
@@ -97,8 +99,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         controller: controller.productPriceController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Product price',
-                          hintText: 'Enter product price',
+                          hintText: 'Product price',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03),
                           ),
@@ -125,6 +126,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                               ? controller.salePriceError.value
                               : null,
                         ),
+                  onChanged: (value)=>controller.validateSalePrice,
                       )
                     : const LimitedBox(),
                 SizedBox(height: width * 0.04),

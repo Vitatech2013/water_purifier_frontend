@@ -29,7 +29,7 @@ class HomeView extends GetView<HomeController> {
               color: Colors.blue,
               child: Column(
                 children: [
-                  SizedBox(height: width / 5),
+                  SizedBox(height: width / 7),
                   CircleAvatar(
                     radius: width * 0.2,
                     backgroundColor: Colors.white,

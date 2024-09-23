@@ -348,10 +348,6 @@ class SaleView extends GetView<SaleController> {
                             ],
                           ),
                           SizedBox(height: width * 0.03),
-                          // Text(
-                          //   'Expiry Date: ${formatToMDY(product.warrantyExpiry)}',
-                          //   style: const TextStyle(fontSize: 16),
-                          // ),
                           Text(
                               "Product Price: ${product.salePrice.floor().toString() ?? "N/A"}",
                               style: textTheme.titleMedium!

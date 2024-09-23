@@ -48,7 +48,7 @@ class AddEditController extends GetxController {
       productNameController.text = product.productName ?? '';
       productDescriptionController.text = product.description ?? '';
       productPriceController.text = product.productPrice.toString() ?? '';
-      warrantyController.text = product.warranty.toString() ?? '';
+      warrantyController.text =product.warranty.toString()=="null"?warrantyController.text="0": product.warranty.toString() ?? '';
       selectedWarrantyType.value =
       product.warrantyType == "months" ? "M" : "Y";
       initialImage.value = product.productImg ?? '';
