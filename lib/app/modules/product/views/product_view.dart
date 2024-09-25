@@ -52,19 +52,23 @@ class ProductView extends GetView<ProductController> {
           if (!controller.isInternetAvailable.value) {
             return Center(
               child: Padding(
-                padding:  EdgeInsets.symmetric(horizontal: width*0.12),
+                padding: EdgeInsets.symmetric(horizontal: width * 0.12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.signal_wifi_connected_no_internet_4,size: width/2,color: Colors.redAccent,),
-                    SizedBox(height: width*0.04),
+                    Icon(
+                      Icons.signal_wifi_connected_no_internet_4,
+                      size: width / 2,
+                      color: Colors.redAccent,
+                    ),
+                    SizedBox(height: width * 0.04),
                     Text(
                       "Please check your internet connection.",
                       style: textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
-                     SizedBox(height: width*0.04),
+                    SizedBox(height: width * 0.04),
                     FilledButton(
                       onPressed: () {
                         controller.internetAvailableAndLoadData();
@@ -129,85 +133,94 @@ class ProductView extends GetView<ProductController> {
                           ],
                         ),
                         child: Padding(
-                          padding: EdgeInsets.only(
-                              top: width * 0.04,
-                              right: width * 0.04,
-                              bottom: width * 0.115,
-                              left: width * 0.04),
+                          padding: EdgeInsets.all(width * 0.04),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ClipRRect(
-                                    borderRadius:
-                                        BorderRadius.circular(width * 0.02),
-                                    child: Image.network(
-                                      imageUrl,
-                                      width: width / 4,
-                                      height: width / 4,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null) {
-                                          return child;
-                                        } else {
-                                          return SizedBox(
-                                            width: width / 4,
-                                            height: width / 4,
-                                            child: Center(
-                                              child: CircularProgressIndicator(
-                                                value: loadingProgress
-                                                            .expectedTotalBytes !=
-                                                        null
-                                                    ? loadingProgress
-                                                            .cumulativeBytesLoaded /
-                                                        (loadingProgress
-                                                                .expectedTotalBytes ??
-                                                            1)
-                                                    : null,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return const Center(
-                                          child: Icon(Icons.error,
-                                              color: Colors.red),
-                                        );
-                                      },
-                                    ),
+                                  Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(width * 0.02),
+                                        child: Image.network(
+                                          imageUrl,
+                                          width: width / 4,
+                                          height: width / 4,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            } else {
+                                              return SizedBox(
+                                                width: width / 4,
+                                                height: width / 4,
+                                                child: Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    value: loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            (loadingProgress
+                                                                    .expectedTotalBytes ??
+                                                                1)
+                                                        : null,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Center(
+                                              child: Icon(Icons.error,
+                                                  color: Colors.red),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(width: width * 0.027),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            product.productName ?? '',
+                                            style: textTheme.titleLarge
+                                                ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(height: width * 0.01),
+                                          Text(
+                                            '💸 ${product.productPrice ?? ''}',
+                                            style: textTheme.titleMedium
+                                                ?.copyWith(color: Colors.green),
+                                          ),
+                                          SizedBox(height: width * 0.01),
+                                          Text(
+                                            'Warranty: ${product.warranty ?? ''} ${_getWarrantyLabel(product.warranty, product.warrantyType)}',
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                    color: Colors.grey[600]),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(width: width * 0.027),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          product.productName ?? '',
-                                          style: textTheme.titleLarge?.copyWith(
-                                              fontWeight: FontWeight.bold),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        SizedBox(height: width * 0.01),
-                                        Text(
-                                          '💸 ${product.productPrice ?? ''}',
-                                          style: textTheme.titleMedium
-                                              ?.copyWith(color: Colors.green),
-                                        ),
-                                        SizedBox(height: width * 0.01),
-                                        Text(
-                                          'Warranty: ${product.warranty ?? ''} ${_getWarrantyLabel(product.warranty, product.warrantyType)}',
-                                          style: textTheme.bodyMedium?.copyWith(
-                                              color: Colors.grey[600]),
-                                        ),
-                                      ],
-                                    ),
+                                  IconButton(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.edit),
                                   ),
                                 ],
                               ),
@@ -218,30 +231,33 @@ class ProductView extends GetView<ProductController> {
                                   color: Colors.grey[700],
                                 ),
                               ),
-                              SizedBox(height: width * 0.027),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      Get.toNamed(Routes.ADD_EDIT,
-                                          arguments: product);
-                                    },
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
-                                    tooltip: 'Edit',
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      // controller.deleteProduct(productId);
-                                      controller.showAlertDialogue(productId);
-                                    },
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    tooltip: 'Delete',
-                                  ),
-                                ],
-                              ),
+                              Obx(
+                                ()=> ToggleButtons(
+                                  isSelected: [controller.isActive.value, !controller.isActive.value],
+                                  onPressed: (int index){
+                                    controller.isActive.value=index==0;
+                                  },
+                                  color: Colors.grey, // Background color for inactive
+                                  selectedColor: Colors.blue, // Background color for active
+                                  borderColor: Colors.blue,
+                                  selectedBorderColor: Colors.blue,
+                                  borderRadius: BorderRadius.circular(8),
+                                  children:  [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0),
+                                      child: Text('Active',
+                                          style: TextStyle(color: controller.isActive.value ? Colors.white : Colors.black)),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0),
+                                      child: Text('Inactive',
+                                          style: TextStyle(color: !controller.isActive.value ? Colors.white : Colors.black)),
+                                    ),
+                                  ],
+                                ),
+                              )
                             ],
                           ),
                         ),

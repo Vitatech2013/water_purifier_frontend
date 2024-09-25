@@ -67,12 +67,13 @@ class SigninController extends GetxController {
         loading.value=false;
         String responseBody = await response.stream.bytesToString();
         var decodedResponse = jsonDecode(responseBody);
-
+        print(decodedResponse["role"]);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', emailController.text.trim());
         await prefs.setString("ownerId", decodedResponse["_id"]);
         await prefs.setString("token", decodedResponse["token"]);
+        await prefs.setString("role",decodedResponse["role"]);
         String email = emailController.text.trim();
         String username = email.split('@')[0];
         AppUtils.showSnackBar(title:'Welcome, $username!',message:'Hi $username, Here you can go!' );

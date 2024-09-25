@@ -14,7 +14,6 @@ class AddEditView extends GetView<AddEditController> {
     final width = MediaQuery.of(context).size.width;
     final imageUrl =
         '${AppURL.appBaseUrl}/uploads/${controller.initialImage.value}';
-    final isLocalFile = controller.initialImage.value.startsWith('file://');
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -54,34 +53,41 @@ class AddEditView extends GetView<AddEditController> {
                     ),
                   );
                 } else {
+                  bool isLocalFile =
+                      controller.initialImage.value.startsWith('file://') ||
+                          controller.initialImage.value.startsWith('/');
                   return InkWell(
-                    onTap: () {
-                      controller.pickImage(ImageSource.camera);
-                    },
-                    child:
-                    Stack(
-                      children: [
-                        Image.network(
-                          imageUrl,
-                          height: width / 2.5,
-                          fit: BoxFit.cover,
-                        ),
-                        Positioned(
-                          top: 0,
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Icon(
-                              Icons.camera_alt,
-                              color: Colors.grey,
-                              size: width/8,
+                      onTap: () {
+                        controller.pickImage(ImageSource.camera);
+                      },
+                      child: Stack(
+                        children: [
+                          isLocalFile
+                              ? Image.file(
+                                  File(controller.initialImage.value),
+                                  height: width / 2.5,
+                                  fit: BoxFit.cover,
+                                )
+                              : Image.network(
+                                  imageUrl,
+                                  height: width / 2.5,
+                                  fit: BoxFit.cover,
+                                ),
+                          Positioned(
+                            top: 0,
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Icon(
+                                Icons.camera_alt,
+                                color: Colors.grey,
+                                size: width / 8,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  );
+                        ],
+                      ));
                 }
               }),
               SizedBox(height: width * 0.04),
@@ -209,12 +215,13 @@ class AddEditView extends GetView<AddEditController> {
                   }),
                   SizedBox(height: width * 0.05),
                   Obx(
-                      ()=> FilledButton(
+                    () => FilledButton(
                       style: FilledButton.styleFrom(
-                        backgroundColor: controller.loading.value?Colors.grey:Colors.blue
-                      ),
+                          backgroundColor: controller.loading.value
+                              ? Colors.grey
+                              : Colors.blue),
                       onPressed: () {
-                        if(controller.loading.value==false){
+                        if (controller.loading.value == false) {
                           controller.saveProduct();
                         }
                       },

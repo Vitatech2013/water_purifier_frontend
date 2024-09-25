@@ -62,6 +62,7 @@ class AddEditController extends GetxController {
     final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
       selectedImage.value = File(pickedFile.path);
+      initialImage.value = pickedFile.path;
     }
   }
 
@@ -146,7 +147,8 @@ class AddEditController extends GetxController {
           'warranty': warrantyController.text,
           'description': productDescriptionController.text,
           'warrantyType': selectedWarrantyType.value == 'M' ? 'months' : 'years',
-          //'ownerId': ownerId,
+          'ownerId': ownerId,
+          'status':"",
         });
 
         // Handle image file

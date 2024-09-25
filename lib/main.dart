@@ -13,7 +13,7 @@ void main() {
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.getWaterPurifierTheme(),
-      darkTheme: AppTheme.getWaterPurifierTheme(),
+      darkTheme: AppTheme.getWaterPurifierTheme()
     ),
   );
 }

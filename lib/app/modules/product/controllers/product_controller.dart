@@ -12,6 +12,7 @@ class ProductController extends GetxController {
   var isLoading = true.obs;
   final isEditing = false.obs;
   final isInternetAvailable = true.obs;
+  final isActive = false.obs;
 
   @override
   void onInit() {

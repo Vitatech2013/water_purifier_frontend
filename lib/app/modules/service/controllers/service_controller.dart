@@ -75,7 +75,7 @@ class ServiceController extends GetxController {
 
   Future<void> deleteService(String serviceId) async {
     try {
-      // Retrieve token and ownerId from SharedPreferences
+      
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
       String? ownerId = prefs.getString('ownerId');
@@ -85,14 +85,14 @@ class ServiceController extends GetxController {
         return;
       }
 
-      // Prepare the URL and headers with token and ownerId
+    
       final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.deleteService}$serviceId?ownerId=$ownerId');
 
       final response = await http.delete(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Add the authorization token
+          'Authorization': 'Bearer $token',
         },
       );
 
