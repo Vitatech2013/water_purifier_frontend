@@ -20,6 +20,7 @@ class ServiceView extends GetView<ServiceController> {
         return false;
       },
       child: Scaffold(
+        backgroundColor: Colors.white.withOpacity(0.9),
         appBar: AppBar(
           leading: IconButton(
             onPressed: () {
@@ -118,7 +119,7 @@ class ServiceView extends GetView<ServiceController> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                service.name,
+                                service.serviceName,
                                 style: textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.primary,
@@ -126,14 +127,14 @@ class ServiceView extends GetView<ServiceController> {
                               ),
                               SizedBox(height: width * 0.017),
                               Text(
-                                '💰 ${service.price}',
+                                '💰 ${service.servicePrice}',
                                 style: textTheme.titleMedium?.copyWith(
                                   color: Colors.green[700],
                                 ),
                               ),
                               SizedBox(height: width * 0.02),
                               Text(
-                                service.description,
+                                service.serviceDescription,
                                 style: textTheme.titleMedium?.copyWith(
                                   color: Colors.grey[700],
                                 ),

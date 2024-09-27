@@ -42,6 +42,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                 TextField(
                   enabled: !loading,
                   controller: controller.nameController,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Name',
                     hintText: 'Enter the customer name',
@@ -52,12 +53,14 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         ? controller.nameError.value
                         : null,
                   ),
+                  onChanged: (value)=>controller.validateName,
                 ),
                 SizedBox(height: width * 0.04),
                 TextField(
                   enabled: !loading,
                   controller: controller.mobileNumberController,
                   keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Mobile Number',
                     hintText: 'Enter the mobile number',
@@ -68,6 +71,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         ? controller.mobileNumberError.value
                         : null,
                   ),
+                  onChanged: (value)=>controller.validateMobileNumber,
                 ),
                 SizedBox(height: width * 0.04),
                 controller.userId.isEmpty
@@ -115,6 +119,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                         enabled: !loading,
                         controller: controller.salePriceController,
                         keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                         decoration: InputDecoration(
                           labelText: 'Sale price',
                           hintText: 'Enter sale price',
@@ -125,6 +130,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
                               ? controller.salePriceError.value
                               : null,
                         ),
+                  onChanged: (value)=>controller.validateSalePrice,
                       )
                     : const LimitedBox(),
                 SizedBox(height: width * 0.04),

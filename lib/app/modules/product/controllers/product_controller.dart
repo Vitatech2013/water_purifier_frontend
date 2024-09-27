@@ -8,7 +8,7 @@ import 'package:water_purifier/app/core/app_config/app_utils.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 
 class ProductController extends GetxController {
-  var products = <Datum>[].obs; // Using the model Datum
+  var products = <Datum>[].obs;
   var isLoading = true.obs;
   final isEditing = false.obs;
   final isInternetAvailable = true.obs;
@@ -78,7 +78,7 @@ class ProductController extends GetxController {
 
   void showAlertDialogue(String id) {
     AppUtils.showModernDialog(
-        title: "Are you sure you want to delete",
+        title: "Are you sure you want to Inactive",
         button1Text: "Yes",
         button1Action: () {
           deleteProduct(id);

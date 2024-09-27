@@ -8,7 +8,7 @@ import 'package:water_purifier/app/modules/service/models/service_response.dart'
 
 class ServiceController extends GetxController {
   final currentIndex = 0.obs;
-  final services = <ServiceResponse>[].obs;
+  final services = <Data>[].obs;
   final isLoading = true.obs;
   final isEditing = false.obs;
   final isInternetAvailable = true.obs;
@@ -16,8 +16,6 @@ class ServiceController extends GetxController {
   Future<void> fetchServices() async {
     try {
       isLoading.value = true;
-
-      // Retrieve token and ownerId from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
       String? ownerId = prefs.getString('ownerId');
@@ -32,7 +30,7 @@ class ServiceController extends GetxController {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Add the authorization token
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -43,7 +41,7 @@ class ServiceController extends GetxController {
           final List<dynamic> servicesData = responseData['data'];
           services.value = servicesData
               .map((serviceJson) =>
-              ServiceResponse.fromJson(serviceJson as Map<String, dynamic>))
+              Data.fromJson(serviceJson as Map<String, dynamic>))
               .toList();
           isEditing.value = false;
         } else {
@@ -99,8 +97,8 @@ class ServiceController extends GetxController {
       if (response.statusCode == 200) {
         print('Service deleted successfully');
         isEditing.value = true;
-        Future.delayed(const Duration(seconds: 1)).then((_) => deletingService());
-        services.value = services.where((service) => service.id != serviceId).toList();
+        // Future.delayed(const Duration(seconds: 1)).then((_) => deletingService());
+        // services.value = services.where((service) => service.id != serviceId).toList();
         services.refresh();
       } else {
         print('Failed to delete service: ${response.reasonPhrase}');

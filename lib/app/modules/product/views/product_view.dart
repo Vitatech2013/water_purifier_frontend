@@ -31,6 +31,7 @@ class ProductView extends GetView<ProductController> {
         return false;
       },
       child: Scaffold(
+        backgroundColor: Colors.white.withOpacity(0.9),
         appBar: AppBar(
           leading: IconButton(
             onPressed: () {
@@ -99,7 +100,6 @@ class ProductView extends GetView<ProductController> {
 
           return Column(
             children: [
-              SizedBox(height: width * 0.015),
               controller.isEditing.value
                   ? const LinearProgressIndicator()
                   : const LimitedBox(),
@@ -219,8 +219,13 @@ class ProductView extends GetView<ProductController> {
                                     ],
                                   ),
                                   IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.edit),
+                                    onPressed: () {
+                                      Get.toNamed(Routes.ADD_EDIT,arguments: product);
+                                    },
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Colors.blue,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -231,32 +236,49 @@ class ProductView extends GetView<ProductController> {
                                   color: Colors.grey[700],
                                 ),
                               ),
-                              Obx(
-                                ()=> ToggleButtons(
-                                  isSelected: [controller.isActive.value, !controller.isActive.value],
-                                  onPressed: (int index){
-                                    controller.isActive.value=index==0;
-                                  },
-                                  color: Colors.grey, // Background color for inactive
-                                  selectedColor: Colors.blue, // Background color for active
-                                  borderColor: Colors.blue,
-                                  selectedBorderColor: Colors.blue,
-                                  borderRadius: BorderRadius.circular(8),
-                                  children:  [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16.0),
-                                      child: Text('Active',
-                                          style: TextStyle(color: controller.isActive.value ? Colors.white : Colors.black)),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                   Row(
+                                      children: [
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            foregroundColor: Colors.white, backgroundColor: product.status=="active" ? Colors.blue : Colors.grey,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            // controller.showAlertDialogue(productId);
+                                          },
+                                          child: Text(
+                                            'Active',
+                                            style: TextStyle(
+                                              color: product.status=="active" ? Colors.white : Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            foregroundColor: Colors.white, backgroundColor: product.status=="active" ? Colors.grey : Colors.blue,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            controller.showAlertDialogue(productId);
+                                          },
+                                          child: Text(
+                                            'Inactive',
+                                            style: TextStyle(
+                                              color: product.status=="active" ? Colors.black : Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16.0),
-                                      child: Text('Inactive',
-                                          style: TextStyle(color: !controller.isActive.value ? Colors.white : Colors.black)),
-                                    ),
-                                  ],
-                                ),
+                                ],
                               )
                             ],
                           ),

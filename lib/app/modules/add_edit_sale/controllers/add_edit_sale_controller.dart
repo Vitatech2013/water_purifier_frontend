@@ -55,10 +55,6 @@ class AddEditSaleController extends GetxController {
       }
       print(args.toString());
     });
-
-    nameController.addListener(_validateName);
-    mobileNumberController.addListener(_validateMobileNumber);
-    salePriceController.addListener(_validateSalePrice);
   }
   Future<void> sendThankYouMessage(String mobileNumber,String message) async{
     final smsUri = Uri.parse('sms:$mobileNumber?body=$message');
@@ -83,11 +79,11 @@ class AddEditSaleController extends GetxController {
     }
   }
 
-  void _validateName() {
+  void validateName() {
     nameError.value = nameController.text.isEmpty ? 'Name is required' : '';
   }
 
-  void _validateSalePrice() {
+  void validateSalePrice() {
     if(salePriceController.text.isEmpty)
       {
         salePriceError.value = 'Sale Price is required';
@@ -101,7 +97,7 @@ class AddEditSaleController extends GetxController {
     }
   }
 
-  void _validateMobileNumber() {
+  void validateMobileNumber() {
     final pattern = RegExp(r'^[6-9]\d{9}$');
     mobileNumberError.value = !pattern.hasMatch(mobileNumberController.text)
         ? 'Please enter a valid Indian mobile number'
@@ -109,16 +105,16 @@ class AddEditSaleController extends GetxController {
   }
 
   void validateFields() {
-    _validateName();
-    _validateMobileNumber();
-    _validateSalePrice();
+    validateName();
+    validateMobileNumber();
+    validateSalePrice();
     productError.value =
         selectedProductId.value == null ? 'Please select a product' : '';
   }
 
   void editPersonValidateField() {
-    _validateName();
-    _validateMobileNumber();
+    validateName();
+    validateMobileNumber();
   }
 
   void productSelected(String value) {

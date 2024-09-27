@@ -26,18 +26,15 @@ class AddEditServiceController extends GetxController {
     super.onInit();
     final dynamic service = Get.arguments;
 
-    if (service is ServiceResponse) {
+    if (service is Data) {
       serviceId.value = service.id;
-      serviceNameController.text = service.name;
-      serviceDescriptionController.text = service.description;
-      servicePriceController.text = service.price.toString();
+      serviceNameController.text = service.serviceName;
+      serviceDescriptionController.text = service.serviceDescription;
+      servicePriceController.text = service.servicePrice.toString();
     } else {
       print('Unexpected type for Get.arguments: ${service.runtimeType}');
     }
 
-    serviceNameController.addListener(validateServiceName);
-    serviceDescriptionController.addListener(validateServiceDescription);
-    servicePriceController.addListener(validateServicePrice);
   }
 
   void validateServiceName() {
@@ -61,7 +58,7 @@ class AddEditServiceController extends GetxController {
     }
     else if(!servicePriceController.text.isNum){
       servicePriceError.value='Service price should be a number';
-    }else if(double.parse(servicePriceController.text)>0){
+    }else if(double.parse(servicePriceController.text)<=0){
       servicePriceError.value ='Service price should be greater than zero';
     }
     else{
@@ -91,7 +88,6 @@ class AddEditServiceController extends GetxController {
           return;
         }
 
-        // Determine if this is an add or update operation
         final isUpdating = serviceId.value.isNotEmpty;
         final url = isUpdating
             ? '${AppURL.appBaseUrl}${AppURL.updateService}/${serviceId.value}'
@@ -104,13 +100,13 @@ class AddEditServiceController extends GetxController {
 
         // Prepare the request body
         var body = json.encode({
-          'name': serviceNameController.text,
-          'description': serviceDescriptionController.text,
-          'price': servicePriceController.text,
+          'serviceName': serviceNameController.text,
+          'serviceDescription': serviceDescriptionController.text,
+          'servicePrice': servicePriceController.text,
           'ownerId': ownerId, // Include ownerId in the body
+          'status':"",
         });
 
-        // Create the request based on the action (update or add)
         var request = isUpdating
             ? http.Request('PUT', Uri.parse(url))
             : http.Request('POST', Uri.parse(url));

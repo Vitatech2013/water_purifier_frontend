@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/modules/home/controllers/home_controller.dart';
 import 'package:water_purifier/app/modules/home/widgets/sales_graph.dart';
-import 'package:water_purifier/app/modules/home/widgets/tic_tac_toe_board.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -25,7 +24,7 @@ class HomeView extends GetView<HomeController> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              height: height / 2.55,
+              height: height / 2.45,
               padding: EdgeInsets.zero,
               margin: EdgeInsets.zero,
               color: Colors.blue,
@@ -59,13 +58,13 @@ class HomeView extends GetView<HomeController> {
                         ),
                         textAlign: TextAlign.center,
                       )),
-                  SizedBox(height: width * 0.04),
+                  SizedBox(height: width * 0.02),
                 ],
               ),
             ),
             Container(
               color: Colors.white,
-              height: height / 1.65,
+              height: height / 1.7,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -118,7 +117,7 @@ class HomeView extends GetView<HomeController> {
                           color: Colors.red.withOpacity(0.7),
                         ),
                       ),
-                      const SizedBox(height: 18),
+                       SizedBox(height: width*0.04),
                     ],
                   ),
                 ],
