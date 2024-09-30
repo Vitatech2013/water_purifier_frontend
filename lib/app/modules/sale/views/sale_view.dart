@@ -601,11 +601,11 @@ class SaleView extends GetView<SaleController> {
                         itemBuilder: (context, index) {
                           final service = controller.serviceList[index];
                           return ListTile(
-                            title: Text(service.name,
+                            title: Text("${service.servicePrice}",
                                 style: TextStyle(
                                     fontSize: width * 0.04,
                                     fontWeight: FontWeight.bold)),
-                            subtitle: Text("Price:${service.price.floor()}"),
+                            subtitle: Text("Price:${service.servicePrice.floor()}"),
                             trailing: TextButton(
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
@@ -629,7 +629,7 @@ class SaleView extends GetView<SaleController> {
                                   saleId: saleId,
                                   productId: productId,
                                   serviceTypeId: service.id,
-                                  servicePrice: service.price.toDouble(),
+                                  servicePrice: service.servicePrice.toDouble(),
                                   salePrice: 2000.0,
                                 )
                                     .then((_) {

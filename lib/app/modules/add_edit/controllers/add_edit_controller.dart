@@ -37,6 +37,8 @@ class AddEditController extends GetxController {
   var selectedWarrantyType = 'M'.obs;
   final List<String> warrantyTypes = ["M", "Y"];
 
+  final RegExp specialCharRegex = RegExp(r'[!@#<>?":_`~;,[\]\\|=+×÷$)(*&^%-]');
+
   @override
   void onInit() {
     super.onInit();
@@ -62,20 +64,36 @@ class AddEditController extends GetxController {
     final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
       selectedImage.value = File(pickedFile.path);
+      initialImage.value = pickedFile.path;
     }
   }
 
   // Validation Methods
   void validateProductName() {
-    productNameError.value = productNameController.text.isEmpty
-        ? 'Product name is required'
-        : '';
+    String productName = productNameController.text.trim();
+    if(productName.isEmpty){
+      productNameError.value = 'Product name is required';
+    }
+    else if(specialCharRegex.hasMatch(productName)){
+      productNameError.value = 'Should not contain special characters';
+    }
+    else{
+      productNameError.value = '';
+    }
+
   }
 
   void validateProductDescription() {
-    productDescriptionError.value = productDescriptionController.text.isEmpty
-        ? 'Description is required'
-        : '';
+    String productDescription = productDescriptionController.text.trim();
+    if(productDescription.isEmpty){
+      productDescriptionError.value = 'Product Description is required';
+    }
+    else if(specialCharRegex.hasMatch(productDescription)){
+      productDescriptionError.value = 'Should not contain special characters';
+    }
+    else{
+      productDescriptionError.value = '';
+    }
   }
 
   void validateProductPrice() {
@@ -84,6 +102,9 @@ class AddEditController extends GetxController {
     }
     else if(!productPriceController.text.isNum){
       productPriceError.value = 'Product price should be number';
+    }
+    else if (double.parse(productPriceController.text)<=0){
+      productPriceError.value= 'product price should be greater than zero';
     }
     else{
       productPriceError.value="";
@@ -146,7 +167,8 @@ class AddEditController extends GetxController {
           'warranty': warrantyController.text,
           'description': productDescriptionController.text,
           'warrantyType': selectedWarrantyType.value == 'M' ? 'months' : 'years',
-          //'ownerId': ownerId,
+          'ownerId': ownerId,
+          'status':"",
         });
 
         // Handle image file

@@ -45,6 +45,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     errorText:controller.serviceNameError.value.isNotEmpty? controller.serviceNameError.value:"",
                     onChanged: (value) => controller.validateServiceName(),
                     width: width,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
                  SizedBox(height: width*0.04),
@@ -58,6 +59,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     errorText: controller.serviceDescriptionError.value,
                     onChanged: (value) => controller.validateServiceDescription(),
                     width: width,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
                  SizedBox(height: width*0.04),
@@ -71,6 +73,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     errorText: controller.servicePriceError.value,
                     onChanged: (value) => controller.validateServicePrice(),
                     width: width,
+                    textInputAction: TextInputAction.done,
                   ),
                 ),
                  SizedBox(height: width*0.06),
@@ -103,7 +106,8 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
     TextInputType keyboardType = TextInputType.text,
     required String errorText,
     required ValueChanged<String> onChanged,
-    required double width
+    required double width,
+    required TextInputAction textInputAction,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,6 +126,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           onChanged: onChanged,
+          textInputAction: textInputAction,
         ),
       ],
     );

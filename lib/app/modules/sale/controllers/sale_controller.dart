@@ -14,7 +14,7 @@ class SaleController extends GetxController {
   var salesList = <Record>[].obs;
   var filteredSalesList = <Record>[].obs;
   var productList = <Datum>[].obs;
-  var serviceList = <ServiceResponse>[].obs;
+  var serviceList = <Data>[].obs;
   final isEditing = false.obs;
   var addedServiceIds = <String>[].obs;
   var phoneNumberFilter = ''.obs;
@@ -153,7 +153,7 @@ class SaleController extends GetxController {
         if (responseData is Map<String, dynamic> && responseData['status'] == 1) {
           final List<dynamic> servicesData = responseData['data'];
           serviceList.value = servicesData
-              .map((serviceJson) => ServiceResponse.fromJson(serviceJson as Map<String, dynamic>))
+              .map((serviceJson) => Data.fromJson(serviceJson as Map<String, dynamic>))
               .toList();
         } else {
           print('Unexpected response format or status');
