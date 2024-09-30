@@ -22,10 +22,10 @@ class SigninController extends GetxController {
   }
 
   String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Please enter your email';
     }
-    if (!GetUtils.isEmail(value)) {
+    if (!GetUtils.isEmail(value.trim())) {
       return 'Please enter a valid email';
     }
     return null;

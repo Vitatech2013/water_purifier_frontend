@@ -7,4 +7,6 @@ class AppAssets {
   static const product = 'assets/productpng.png';
   static const sale = 'assets/salespng.png';
   static const support = 'assets/supportpng.png';
+  static const logoGif = 'assets/logo.gif';
+
 }

@@ -21,6 +21,8 @@ class AddEditServiceController extends GetxController {
   RxString serviceDescriptionError = ''.obs;
   RxString servicePriceError = ''.obs;
 
+  final RegExp specialCharRegExp = RegExp(r'[!@#<>?":_`~;,[\]\\|=+×÷$)(*&^%-]');
+
   @override
   void onInit() {
     super.onInit();
@@ -38,8 +40,12 @@ class AddEditServiceController extends GetxController {
   }
 
   void validateServiceName() {
-    if(serviceNameController.text.isEmpty){
+    final serviceName = serviceNameController.text.trim();
+    if(serviceName.isEmpty){
       serviceNameError.value = 'Service name is required';
+    }
+    else if(specialCharRegExp.hasMatch(serviceName)){
+      serviceNameError.value = "Should not contain special characters";
     }
     else{
       serviceNameError.value = '';
@@ -47,9 +53,16 @@ class AddEditServiceController extends GetxController {
   }
 
   void validateServiceDescription() {
-    serviceDescriptionError.value = serviceDescriptionController.text.isEmpty
-        ? 'Service description is required'
-        : '';
+    final serviceDescription =serviceDescriptionController.text.trim();
+    if(serviceDescription.isEmpty){
+      serviceDescriptionError.value = 'Service description is required';
+    }
+    else if(specialCharRegExp.hasMatch(serviceDescription)){
+      serviceDescriptionError.value = "Should not contain special characters";
+    }
+    else{
+      serviceDescriptionError.value = '';
+    }
   }
 
   void validateServicePrice() {

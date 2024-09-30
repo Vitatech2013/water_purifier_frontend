@@ -186,6 +186,7 @@ class AddEditSaleController extends GetxController {
           "saleDate": selectedDate.value.toIso8601String(),
           "salePrice": salePriceController.text,
           "ownerId": ownerId,
+          "discountPercentage":"",
         });
 
         var request = http.Request('POST', Uri.parse(url));

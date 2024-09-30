@@ -105,19 +105,21 @@ class SigninView extends GetView<SigninController> {
                 ],
               ),
               SizedBox(height: height / 14),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(width * 0.025),
+              Obx(
+                  ()=> FilledButton(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(width * 0.025),
+                    ),
+                    backgroundColor: controller.loading.value?Colors.grey:colorScheme.primary,
                   ),
-                  backgroundColor: colorScheme.primary,
-                ),
-                onPressed: controller.signIn,
-                child: Text(
-                  "Login",
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  onPressed: controller.signIn,
+                  child: Text(
+                    "Login",
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

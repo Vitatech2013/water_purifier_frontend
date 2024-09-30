@@ -11,6 +11,7 @@ import 'package:water_purifier/app/modules/technician/models/technician_response
 class TechnicianController extends GetxController {
   final technicians = <TechnicianResponse>[].obs;
   final isEditing = false.obs;
+  final isLoading = true.obs;
 
   Future<void> getTechnicians() async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,6 +33,7 @@ class TechnicianController extends GetxController {
     request.headers.addAll(headers);
 
     try {
+      isLoading.value = true;
       final response = await request.send();
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -49,11 +51,13 @@ class TechnicianController extends GetxController {
       debugPrintStack(stackTrace: stackTrace);
     } finally {
       isEditing.value = false;
+      isLoading.value = false;
     }
   }
 
   Future<void> deleteTechnician(String technicainId) async {
     try {
+      isLoading.value = true;
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
       if (token == null) {
@@ -80,6 +84,8 @@ class TechnicianController extends GetxController {
       }
     } catch (e) {
       print('Error occurred during deletion: $e');
+    }finally{
+      isLoading.value=false;
     }
   }
     void deletingTechnicians() {

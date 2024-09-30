@@ -116,6 +116,7 @@ class AddEditView extends GetView<AddEditController> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Name',
+                        hintText: 'Enter the product name',
                         errorText: controller.productNameError.value.isNotEmpty
                             ? controller.productNameError.value
                             : null,
@@ -134,6 +135,7 @@ class AddEditView extends GetView<AddEditController> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Description',
+                        hintText: 'Enter the product description',
                         errorText:
                             controller.productDescriptionError.value.isNotEmpty
                                 ? controller.productDescriptionError.value
@@ -153,6 +155,7 @@ class AddEditView extends GetView<AddEditController> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Price',
+                        hintText: 'Enter the product price',
                         errorText: controller.productPriceError.value.isNotEmpty
                             ? controller.productPriceError.value
                             : null,

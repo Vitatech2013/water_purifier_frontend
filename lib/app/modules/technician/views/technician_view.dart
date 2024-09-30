@@ -10,6 +10,7 @@ class TechnicianView extends GetView<TechnicianController> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final textTheme = Theme.of(context).textTheme;
     return WillPopScope(
       onWillPop: () async {
         log('Physical back button pressed');
@@ -35,15 +36,22 @@ class TechnicianView extends GetView<TechnicianController> {
           backgroundColor: Colors.blue,
         ),
         body: Obx(() {
-          if (controller.technicians.isEmpty) {
-            return const Center(
-              child: Text(
-                'No Technicians Found',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
+          if(controller.isLoading.value)
+            {
+              return const Center(child: CircularProgressIndicator());
+            }
+         else if (controller.technicians.isEmpty) {
+            return  Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Oops! It looks empty here. Why not add some technician?",
+                  style: textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             );
           }
-
           return Column(
             children: [
               SizedBox(height: width * 0.015),

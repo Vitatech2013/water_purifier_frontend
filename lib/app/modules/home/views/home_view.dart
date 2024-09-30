@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_purifier/app/modules/home/controllers/home_controller.dart';
-import 'package:water_purifier/app/modules/home/widgets/sales_graph.dart';
+import 'package:water_purifier/app/modules/home/widgets/sync_fusion_chart.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -10,6 +10,7 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     final textTheme = Theme.of(context).textTheme;
@@ -81,7 +82,8 @@ class HomeView extends GetView<HomeController> {
                           ),
                         if (controller.isowner.value)
                           ListTile(
-                            leading: const Icon(Icons.home_repair_service_outlined),
+                            leading:
+                                const Icon(Icons.home_repair_service_outlined),
                             title: const Text('Services'),
                             onTap: () {
                               Get.toNamed(Routes.SERVICE);
@@ -117,7 +119,7 @@ class HomeView extends GetView<HomeController> {
                           color: Colors.red.withOpacity(0.7),
                         ),
                       ),
-                       SizedBox(height: width*0.04),
+                      SizedBox(height: width * 0.04),
                     ],
                   ),
                 ],
@@ -162,24 +164,30 @@ class HomeView extends GetView<HomeController> {
       ),
       child: Padding(
         padding: EdgeInsets.all(width * 0.038),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildCard(width, height, 'Products', "assets/productpng.png", "Products"),
-                buildCard(width, height, 'Services', "assets/supportpng.png", "Services"),
-              ],
-            ),
-            SizedBox(height: width * 0.02),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildCard(width, height, 'Sales', "assets/salespng.png", "Sales"),
-                buildCard(width, height, 'Technician', "assets/technician.png", "Technician"),
-              ],
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildCard(width, height, 'Products', "assets/productpng.png",
+                      "Products"),
+                  buildCard(width, height, 'Services', "assets/supportpng.png",
+                      "Services"),
+                ],
+              ),
+              SizedBox(height: width * 0.02),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  buildCard(
+                      width, height, 'Sales', "assets/salespng.png", "Sales"),
+                  buildCard(width, height, 'Technician', "assets/technician.png",
+                      "Technician"),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -204,32 +212,39 @@ class HomeView extends GetView<HomeController> {
               child: Padding(
                 padding: const EdgeInsets.all(28),
                 child: ListTile(
-                  leading: Image.asset(
-                  "assets/salespng.png",
-                ),
-                title: const Text("Sales"),
-                  trailing: CircleAvatar(child: IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_forward_ios)),),
+                  leading: Image.asset("assets/salespng.png"),
+                  title: const Text("Sales"),
+                  trailing: CircleAvatar(
+                    child: IconButton(
+                      onPressed: () {
+                        Get.toNamed(Routes.SALE);
+                      },
+                      icon: const Icon(Icons.arrow_forward_ios),
+                    ),
+                  ),
                 ),
               ),
             ),
-            SalesGraph(salesData: [1,2,32,48],),
-            // const Text(
-            //   'Tic-Tac-Toe Game',
-            //   style: TextStyle(
-            //     fontSize: 20,
-            //     fontWeight: FontWeight.bold,
-            //     color: Colors.white,
-            //   ),
-            // ),
-            // const TicTacToeBoard(),
+            // Pass the dynamically fetched salesData list into SyncFusionChart
+            Obx(() {
+              return Flexible(
+                child: controller.monthlySalesData.isNotEmpty
+                    ? SyncFusionChart(salesData: controller.monthlySalesData)
+                    : const Center(child: CircularProgressIndicator()),
+              );
+            }),
+            SizedBox(height: width * 0.02),
           ],
         ),
       ),
     );
   }
 
+
+
   // Logout bottom sheet method
-  void _showLogoutBottomSheet(BuildContext context, double width, double height) {
+  void _showLogoutBottomSheet(
+      BuildContext context, double width, double height) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -291,7 +306,8 @@ class HomeView extends GetView<HomeController> {
   }
 
   // Reusable card widget
-  Widget buildCard(double width, double height, String text, String image, String navigateTo) {
+  Widget buildCard(double width, double height, String text, String image,
+      String navigateTo) {
     return InkWell(
       onTap: () {
         if (navigateTo == "Products") {

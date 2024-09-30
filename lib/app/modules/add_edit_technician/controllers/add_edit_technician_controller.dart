@@ -16,6 +16,7 @@ class AddEditTechnicianController extends GetxController {
   final loading = false.obs;
   final id = Rx<String?>(null);
   final technician = Get.find<TechnicianController>();
+  final RegExp specialCharRegex = RegExp(r'[!@#<>?":_`~;,[\]\\|=+×÷$)(*&^%-]');
 
   RxString nameError = ''.obs;
   RxString emailError = ''.obs;
@@ -23,17 +24,21 @@ class AddEditTechnicianController extends GetxController {
   RxString confirmPasswordError = ''.obs;
 
   void validateTechnicianName() {
-    if (nameController.text.isEmpty) {
+    final techName = nameController.text.trim();
+    if (techName.isEmpty) {
       nameError.value = 'Technician name is required';
-    } else {
+    } else if(specialCharRegex.hasMatch(techName)){
+      nameError.value = "Should not contain special characters";
+    }
+    else{
       nameError.value = '';
     }
   }
 
   void validateEmail() {
-    if (emailController.text.isEmpty) {
+    if (emailController.text.trim().isEmpty) {
       emailError.value = 'Email is required';
-    } else if (!GetUtils.isEmail(emailController.text)) {
+    } else if (!GetUtils.isEmail(emailController.text.trim())) {
       emailError.value = 'Invalid email format';
     } else {
       emailError.value = '';
@@ -41,7 +46,7 @@ class AddEditTechnicianController extends GetxController {
   }
 
   void validatePassword() {
-    if (passwordController.text.isEmpty) {
+    if (passwordController.text.trim().isEmpty) {
       passwordError.value = 'Password is required';
     } else {
       passwordError.value = '';
@@ -49,7 +54,7 @@ class AddEditTechnicianController extends GetxController {
   }
 
   void validateConfirmPassword() {
-    if (confirmPasswordController.text.isEmpty) {
+    if (confirmPasswordController.text.trim().isEmpty) {
       confirmPasswordError.value = 'Confirm password is required';
     } else if (confirmPasswordController.text != passwordController.text) {
       confirmPasswordError.value = 'Passwords do not match';
@@ -87,10 +92,10 @@ class AddEditTechnicianController extends GetxController {
     final requestUrl = id.value ==null? Uri.parse(AppURL.appBaseUrl+AppURL.addTechnician):Uri.parse(AppURL.appBaseUrl+AppURL.editTechnician+(id.value??""));
     var request = http.Request(id.value ==null?'POST':'PUT', requestUrl);
     request.body = json.encode({
-      "name":nameController.text,
-      "email":emailController.text,
+      "name":nameController.text.trim(),
+      "email":emailController.text.trim(),
       "ownerId":ownerId,
-      "password":passwordController.text,
+      "password":passwordController.text.trim(),
     });
     request.headers.addAll(headers);
 

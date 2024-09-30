@@ -7,9 +7,7 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() {
-    return _SplashScreenState();
-  }
+  _SplashScreenState createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen>
@@ -47,7 +45,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     setState(() {});
-
     Future.delayed(const Duration(seconds: 3), () {
       if (isLoggedIn) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -72,29 +69,31 @@ class _SplashScreenState extends State<SplashScreen>
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              if (userName != null) ...[
-                Text(
-                  'Hi, Welcome Back!',
-                  style: TextStyle(
-                      fontSize: width * 0.07,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[800]),
-                ),
-                Text(
-                  userName!,
-                  style: TextStyle(
-                    fontSize: width * 0.07,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                if (userName != null) ...[
+                  Text(
+                    'Hi, Welcome Back!',
+                    style: TextStyle(
+                        fontSize: width * 0.07,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[800]),
                   ),
-                ),
-                SizedBox(height: width * 0.005),
+                  Text(
+                    userName!,
+                    style: TextStyle(
+                      fontSize: width * 0.07,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: width * 0.005),
+                ],
+                Image.asset(AppAssets.logoGif,height: height/3,)
               ],
-              Image.asset(AppAssets.logo,height: height/2,)
-            ],
+            ),
           ),
         ),
       ),
