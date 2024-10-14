@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
 import 'package:water_purifier/app/modules/sale/controllers/sale_controller.dart';
+import 'package:water_purifier/app/modules/signin/controllers/signin_controller.dart';
 import 'package:water_purifier/app/routes/app_pages.dart';
 
 class AddEditSaleController extends GetxController {
@@ -17,6 +18,12 @@ class AddEditSaleController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final saleController = Get.find<SaleController>();
   final loading = false.obs;
+  final RegExp specialCharRegex = RegExp(r'^[a-zA-Z0-9 ]+$');
+  final RegExp numberRegex = RegExp(r'^[0-9]');
+  final forTechnicianOwnerId = Rx<String?>(null);
+  final loginController = Get.find<SigninController>();
+  final isEditing = false.obs;
+  final showLoading = false.obs;
 
   RxString userId = ''.obs;
   Rx<Datum?> selectedProduct = Rx<Datum?>(null);
@@ -24,6 +31,8 @@ class AddEditSaleController extends GetxController {
   final selectedProductId = Rx<String?>(null);
 
   Rx<DateTime> selectedDate = DateTime.now().obs;
+  String? ownerId;
+  String? technicianId;
 
   // Error messages
   RxString nameError = ''.obs;
@@ -33,28 +42,42 @@ class AddEditSaleController extends GetxController {
   var args = {};
   @override
   void onInit() {
-    super.onInit();
-
+    showLoading.value = true;
     fetchProducts().then((_) {
+      checkIsOwner();
       if (Get.arguments != null && Get.arguments is Map) {
+       isEditing.value =true;
         args = Get.arguments;
         if(args["userName"] != null) {
           nameController.text = args["userName"] ?? "";
           mobileNumberController.text = args["userMobile"] ?? "";
           userId.value = args["userId"] ?? 0;
+          showLoading.value = false;
         } else {
           nameController.text = args["name"];
           mobileNumberController.text = args["mobile"];
           String productId = args["productId"];
-          selectProductById(productId); // Ensure this is called after products are fetched
+          selectProductById(productId);
         }
       } else {
+        isEditing.value = false;
         nameController.text = "";
         mobileNumberController.text = "";
         userId.value = "";
       }
-      print(args.toString());
+      showLoading.value = false;
     });
+    super.onInit();
+  }
+ Future<void> checkIsOwner()async{
+    print(loginController.isOwner.value.toString());
+    SharedPreferences prefs =await SharedPreferences.getInstance();
+    if(loginController.isOwner.value){
+      ownerId== prefs.getString('ownerId');
+    }else{
+      technicianId= prefs.getString("technicianId");
+      print("$technicianId");
+    }
   }
   Future<void> sendThankYouMessage(String mobileNumber,String message) async{
     final smsUri = Uri.parse('sms:$mobileNumber?body=$message');
@@ -80,18 +103,33 @@ class AddEditSaleController extends GetxController {
   }
 
   void validateName() {
-    nameError.value = nameController.text.isEmpty ? 'Name is required' : '';
+    final customerName = nameController.text.trim();
+    if(customerName.isEmpty){
+      nameError.value = 'Name is required';
+    }
+    else if(numberRegex.hasMatch(customerName)){
+      nameError.value = 'Name shouldn\'t starts with a number';
+    }
+    else if(!(specialCharRegex.hasMatch(customerName))){
+      nameError.value = 'Name shouldn\'t contains a special characters';
+    }else{
+      nameError.value ='';
+    }
   }
 
   void validateSalePrice() {
-    if(salePriceController.text.isEmpty)
+    final salePrice = salePriceController.text.trim();
+    if(salePrice.isEmpty)
       {
-        salePriceError.value = 'Sale Price is required';
+        salePriceError.value = 'Sale price is required';
       }
-    else if(!salePriceController.text.isNum)
+    else if(!salePrice.isNum)
       {
         salePriceError.value = 'Sale price should be number';
       }
+    else if(double.parse(salePrice)<=0){
+      salePriceError.value = 'Sale price should be greater than zero';
+    }
     else{
       salePriceError.value="";
     }
@@ -99,9 +137,26 @@ class AddEditSaleController extends GetxController {
 
   void validateMobileNumber() {
     final pattern = RegExp(r'^[6-9]\d{9}$');
-    mobileNumberError.value = !pattern.hasMatch(mobileNumberController.text)
-        ? 'Please enter a valid Indian mobile number'
-        : '';
+    String enteredNumber = mobileNumberController.text.trim();
+
+    if (enteredNumber.isEmpty) {
+      mobileNumberError.value = 'Mobile number is required';
+    }
+    else if (!pattern.hasMatch(enteredNumber)) {
+      mobileNumberError.value = 'Please enter a valid Indian mobile number';
+    }
+    else if (isEditing.value==false) {
+      if(saleController.allReadyAddedPhoneNumbers.contains(enteredNumber))
+      {
+        mobileNumberError.value = 'This mobile number has already been added';
+      }
+      else{
+        mobileNumberError.value="";
+      }
+    }
+    else {
+      mobileNumberError.value="";
+    }
   }
 
   void validateFields() {
@@ -125,15 +180,14 @@ class AddEditSaleController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
-      String? ownerId = prefs.getString('ownerId');
 
-      if (token == null || ownerId == null) {
-        print('Authorization token or owner ID not found.');
+      if (token == null) {
+        print('Authorization token not found.');
         return;
       }
 
       var request = http.Request('GET',
-          Uri.parse('${AppURL.appBaseUrl}/api/product/?ownerId=$ownerId'));
+          Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchProducts}'));
       request.headers.addAll({
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -145,7 +199,9 @@ class AddEditSaleController extends GetxController {
         String responseBody = await response.stream.bytesToString();
         var data = jsonDecode(responseBody);
         ProductResponse productResponse = ProductResponse.fromJson(data);
-        products.assignAll(productResponse.data);
+        var activeProducts = productResponse.data.where((product)=>product.status=="active").toList();
+        forTechnicianOwnerId.value=productResponse.data[0].ownerId;
+        products.assignAll(activeProducts);
       } else {
         print('Failed to fetch products: ${response.reasonPhrase}');
       }
@@ -156,7 +212,7 @@ class AddEditSaleController extends GetxController {
 
   Future<void> saveSale() async {
     validateFields();
-
+    
     if (nameError.value.isEmpty &&
         mobileNumberError.value.isEmpty &&
         productError.value.isEmpty &&
@@ -165,13 +221,11 @@ class AddEditSaleController extends GetxController {
       try {
         final prefs = await SharedPreferences.getInstance();
         String? token = prefs.getString('token');
-        String? ownerId = prefs.getString('ownerId');
+        String? role = prefs.getString('role');
+        print(role);
         loading.value = true;
-        if (token == null || ownerId == null) {
-          print('Authorization token or owner ID not found.');
-          return;
-        }
-
+        print("${forTechnicianOwnerId.value}for owner");
+        print("${technicianId}for technicianId");
         const url = '${AppURL.appBaseUrl}${AppURL.addSale}';
         var headers = {
           'Content-Type': 'application/json',
@@ -180,12 +234,13 @@ class AddEditSaleController extends GetxController {
         print("ownerId$ownerId");
         print("productId${selectedProductId.value}");
         var body = json.encode({
-          "name": nameController.text,
-          "mobile": mobileNumberController.text,
+          "name": nameController.text.trim(),
+          "mobile": mobileNumberController.text.trim(),
           "productId": selectedProductId.value ?? "",
           "saleDate": selectedDate.value.toIso8601String(),
-          "salePrice": salePriceController.text,
-          "ownerId": ownerId,
+          "salePrice": salePriceController.text.trim(),
+          "ownerId": forTechnicianOwnerId.value,
+          "technicianId":technicianId ?? "",
           "discountPercentage":"",
         });
 
@@ -199,7 +254,7 @@ class AddEditSaleController extends GetxController {
           print('Sale added successfully');
           await response.stream.bytesToString();
 
-          sendThankYouMessage(mobileNumberController.text, 'Thank you for purchasing ${selectedProduct.value?.productName}');
+          sendThankYouMessage(mobileNumberController.text, 'Thank you for purchasing ${selectedProduct.value?.productName}\nFor more details or any questions \ncontact to my support team: 9642907850');
           Get.offNamed(Routes.SALE);
           saleController.isEditing.value = true;
           Future.delayed(const Duration(seconds: 1))

@@ -15,16 +15,16 @@ class SaleController extends GetxController {
   var filteredSalesList = <Record>[].obs;
   var productList = <Datum>[].obs;
   var serviceList = <Data>[].obs;
+  var allReadyAddedPhoneNumbers = <String>[].obs;
   final isEditing = false.obs;
   var addedServiceIds = <String>[].obs;
   var phoneNumberFilter = ''.obs;
   final isInternetAvailable = true.obs;
-  final phoneNumberController = TextEditingController();
+  final phoneNumberController = TextEditingController() ;
+  final showProgressIndicator = true.obs;
   Future<void> fetchSales() async {
     try {
-      isLoading(true);
-
-      // Retrieve token from shared preferences or environment
+      isLoading.value=true;
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
 
@@ -35,7 +35,7 @@ class SaleController extends GetxController {
 
       var headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', // Add your token here
+        'Authorization': 'Bearer $token',
       };
 
       var response = await http.get(
@@ -47,7 +47,13 @@ class SaleController extends GetxController {
         var jsonData = jsonDecode(response.body);
         SalesResponse salesResponse = SalesResponse.fromJson(jsonData);
         isEditing.value = false;
+        allReadyAddedPhoneNumbers.clear();
         salesList.assignAll(salesResponse.data);
+        for(var number in salesList){
+          if(number.user?.mobile!=null){
+            allReadyAddedPhoneNumbers.add(number.user!.mobile);
+          }
+        }
       } else {
         print(response.body.toString());
       }
@@ -55,7 +61,7 @@ class SaleController extends GetxController {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: s);
     } finally {
-      isLoading(false);
+      isLoading.value=false;
     }
   }
   // Filter sales based on phone number
@@ -76,21 +82,15 @@ class SaleController extends GetxController {
   Future<void> fetchProducts() async {
     try {
       isLoading.value = true;
-
-      // Retrieve token and ownerId from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
-      String? ownerId = prefs.getString('ownerId');
-
-      if (token == null || ownerId == null) {
+      if (token == null) {
         print('Authorization token or owner ID not found.');
         return;
       }
 
-      // Prepare the URL with ownerId as a query parameter
-      final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchProducts}?ownerId=$ownerId');
+      final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchProducts}');
 
-      // Add the authorization token to the headers
       final headers = {
         'Authorization': 'Bearer $token', // Add the token here
       };
@@ -127,22 +127,17 @@ class SaleController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Retrieve token and ownerId from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
-      String? ownerId = prefs.getString('ownerId');
 
-      if (token == null || ownerId == null) {
+      if (token == null) {
         print('Authorization token or owner ID not found.');
         return;
       }
+      final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchService}');
 
-      // Prepare the URL with ownerId as a query parameter
-      final url = Uri.parse('${AppURL.appBaseUrl}${AppURL.fetchService}?ownerId=$ownerId');
-
-      // Add the authorization token to the headers
       final headers = {
-        'Authorization': 'Bearer $token', // Add the token here
+        'Authorization': 'Bearer $token',
       };
 
       final response = await http.get(url, headers: headers);
@@ -234,7 +229,7 @@ class SaleController extends GetxController {
     String? token = prefs.getString('token');
     String? ownerId = prefs.getString('ownerId');
 
-    if (token == null || ownerId == null) {
+    if (token == null) {
       print('Authorization token or owner ID not found.');
       return;
     }
@@ -249,7 +244,7 @@ class SaleController extends GetxController {
     final body = json.encode({
       'saleId': saleId,
       'productId': productId,
-      'serviceTypeId': serviceTypeId,
+      'serviceType': serviceTypeId,
       'serviceDate': DateTime.now().toIso8601String(),
       'servicePrice': servicePrice,
       'salePrice':salePrice,
@@ -294,6 +289,9 @@ class SaleController extends GetxController {
   @override
   void onInit() {
    internetAvailableAndLoadData();
+   Future.delayed(const Duration(seconds: 2),(){
+     showProgressIndicator.value = false;
+   });
     super.onInit();
   }
 }

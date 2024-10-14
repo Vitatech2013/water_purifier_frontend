@@ -6,15 +6,17 @@ class AppTheme {
   static ThemeData getWaterPurifierTheme() {
     return ThemeData(
       useMaterial3: true,
-      primarySwatch: AppColors.primaryColor,
+      primarySwatch: AppColors.primarySwatch,
       brightness: Brightness.light,
       fontFamily: 'Montserrat',
       colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryColor,
-          brightness: Brightness.light
+        seedColor: AppColors.primarySwatch.shade400,
+        brightness: Brightness.light,
       ).copyWith(
-        primary: AppColors.primaryColor,
+        primary: AppColors.primarySwatch.shade400,
         onPrimary: Colors.white,
+        secondary: AppColors.secondaryColor, // Secondary color
+        onSecondary: Colors.white,
       ),
       textTheme: _buildTextTheme(),
       filledButtonTheme: FilledButtonThemeData(

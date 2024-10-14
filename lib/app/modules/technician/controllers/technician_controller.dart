@@ -38,10 +38,20 @@ class TechnicianController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseBody = await response.stream.bytesToString();
-        final decodedData = jsonDecode(responseBody) as List;
-        technicians.clear();
-        technicians.addAll(
-            decodedData.map((e) => TechnicianResponse.fromJson(e)).toList());
+        final decodedData = jsonDecode(responseBody);
+
+
+        if (decodedData['success'] == true && decodedData['data'] != null) {
+
+          technicians.clear();
+
+
+          technicians.addAll((decodedData['data'] as List)
+              .map((e) => TechnicianResponse.fromJson(e))
+              .toList());
+        } else {
+          debugPrint('Error: No technicians found or invalid response format.');
+        }
       } else {
         debugPrint(
             'Error: Failed to fetch technicians. Status code: ${response.statusCode}');
@@ -55,7 +65,8 @@ class TechnicianController extends GetxController {
     }
   }
 
-  Future<void> deleteTechnician(String technicainId) async {
+
+  Future<void> deleteTechnician(String technicianId) async {
     try {
       isLoading.value = true;
       final prefs = await SharedPreferences.getInstance();
@@ -66,7 +77,7 @@ class TechnicianController extends GetxController {
       }
       final response = await http.delete(
           Uri.parse(
-            AppURL.appBaseUrl + AppURL.deleteTechnician + technicainId,
+            AppURL.appBaseUrl + AppURL.deleteTechnician + technicianId,
           ),
           headers: {
             'Content-Type': 'application/json',
@@ -76,7 +87,7 @@ class TechnicianController extends GetxController {
         print("technician deleted");
         isEditing.value =true;
         Future.delayed(const Duration(seconds: 1)).then((_)=>deletingTechnicians());
-        technicians.value = technicians.where((technician)=>technician.id !=technicainId).toList();
+        technicians.value = technicians.where((technician)=>technician.id !=technicianId).toList();
         technicians.refresh();
       }
       else {
@@ -92,12 +103,12 @@ class TechnicianController extends GetxController {
     isEditing.value = false;
     getTechnicians();
   }
-    void showAlertDialogue(String technicainId) {
+    void showAlertDialogue(String technicianId,String techName) {
     AppUtils.showModernDialog(
-        title: "Are you sure you want to delete",
+        title: "Are you sure you want to delete $techName",
         button1Text: "Yes",
         button1Action: () {
-         deleteTechnician(technicainId);
+         deleteTechnician(technicianId);
           Get.back();
         },
         button2Text: "No",

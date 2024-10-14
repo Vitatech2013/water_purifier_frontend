@@ -16,7 +16,9 @@ class AddEditTechnicianController extends GetxController {
   final loading = false.obs;
   final id = Rx<String?>(null);
   final technician = Get.find<TechnicianController>();
-  final RegExp specialCharRegex = RegExp(r'[!@#<>?":_`~;,[\]\\|=+×÷$)(*&^%-]');
+  final RegExp specialCharRegex = RegExp(r'^[a-zA-Z0-9 ]+$');
+  final RegExp numberRegex = RegExp(r'^[0-9]');
+  final isEditing = true.obs;
 
   RxString nameError = ''.obs;
   RxString emailError = ''.obs;
@@ -27,8 +29,12 @@ class AddEditTechnicianController extends GetxController {
     final techName = nameController.text.trim();
     if (techName.isEmpty) {
       nameError.value = 'Technician name is required';
-    } else if(specialCharRegex.hasMatch(techName)){
-      nameError.value = "Should not contain special characters";
+    }
+    else if(numberRegex.hasMatch(techName)){
+      nameError.value = 'Technician name shouldn\'t starts with a number';
+    }
+    else if(!(specialCharRegex.hasMatch(techName))){
+      nameError.value = "Technician name shouldn't contain special characters";
     }
     else{
       nameError.value = '';
@@ -140,6 +146,7 @@ class AddEditTechnicianController extends GetxController {
     final technicianData = Get.arguments??null;
     if(technicianData!=null)
     {
+      isEditing.value = false;
       nameController.text = technicianData.name??"";
       emailController.text = technicianData.email??"";
       id.value =technicianData.id??"";

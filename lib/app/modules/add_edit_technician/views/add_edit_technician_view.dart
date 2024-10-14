@@ -7,9 +7,9 @@ class AddEditTechnicianView extends GetView<AddEditTechnicianController> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final width = MediaQuery.of(context).size.width;
     final loading = controller.loading.value;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -19,11 +19,13 @@ class AddEditTechnicianView extends GetView<AddEditTechnicianController> {
           },
           icon: const Icon(Icons.arrow_back, color: Colors.white),
         ),
-        title: const Text(
-          'Add Technician',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title:  Obx(
+          ()=> Text(
+           controller.isEditing.value? 'Add Technician':'Edit Technician',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor:colorScheme.primary,
         scrolledUnderElevation: 0,
       ),
       body: Padding(
@@ -55,7 +57,7 @@ class AddEditTechnicianView extends GetView<AddEditTechnicianController> {
                   enabled: !loading,
                   controller: controller.emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Technician Email',
                     hintText: 'Enter the email',
                     errorText: controller.emailError.value.isEmpty ? null : controller.emailError.value,
                     border: OutlineInputBorder(
@@ -68,7 +70,7 @@ class AddEditTechnicianView extends GetView<AddEditTechnicianController> {
                 ),
               ),
               SizedBox(height: width * 0.04),
-              Obx(
+             controller.isEditing.value?Obx(
                 () => TextField(
                   enabled: !loading,
                   controller: controller.passwordController,
@@ -84,9 +86,9 @@ class AddEditTechnicianView extends GetView<AddEditTechnicianController> {
                   onChanged: (value) => controller.validatePassword(),
                   textInputAction: TextInputAction.next,
                 ),
-              ),
+              ):const LimitedBox(),
               SizedBox(height: width * 0.04),
-              Obx(
+            controller.isEditing.value?Obx(
                 () => TextField(
                   enabled: !loading,
                   controller: controller.confirmPasswordController,
@@ -102,11 +104,11 @@ class AddEditTechnicianView extends GetView<AddEditTechnicianController> {
                   onChanged: (value) => controller.validateConfirmPassword(),
                   textInputAction: TextInputAction.done,
                 ),
-              ),
+              ):const LimitedBox(),
               SizedBox(height: width * 0.04),
               FilledButton(
                 onPressed: loading ? null : () => controller.addTechnician(),
-                child: const Text("Add Technician"),
+                child: const Text("Save Technician"),
               ),
             ],
           ),

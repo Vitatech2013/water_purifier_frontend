@@ -57,9 +57,9 @@ class ServiceController extends GetxController {
       isEditing.value = false;
     }
   }
-  void showAlertDialogue(String serviceId) {
+  void showAlertDialogue(String serviceId,String state) {
     AppUtils.showModernDialog(
-        title: "Are you sure you want to delete",
+        title: "Are you sure you want to $state service",
         button1Text: "Yes",
         button1Action: () {
           deleteService(serviceId);
@@ -97,6 +97,7 @@ class ServiceController extends GetxController {
       if (response.statusCode == 200) {
         print('Service deleted successfully');
         isEditing.value = true;
+        fetchingServices();
         // Future.delayed(const Duration(seconds: 1)).then((_) => deletingService());
         // services.value = services.where((service) => service.id != serviceId).toList();
         services.refresh();

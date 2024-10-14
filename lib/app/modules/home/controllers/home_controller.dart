@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,9 +11,10 @@ class HomeController extends GetxController {
   final selectedIndex = 0.obs;
   final userName = 'User'.obs;
   final userEmail = 'user@example.com'.obs;
-  final isowner = false.obs;
+  final isOwner = false.obs;
   final totalSales = <Record>[].obs;
   final salesByMonth = <String, List<Record>>{}.obs;
+  final isLoading = false.obs;
 
   // Stores total sales per month to be used in the graph
   final monthlySalesData = <SalesData>[].obs;
@@ -31,10 +31,11 @@ class HomeController extends GetxController {
     final userInfo = await _getUserInfo();
     userName.value = userInfo['name'] ?? 'User';
     userEmail.value = userInfo['email'] ?? 'user@example.com';
-    isowner.value = userInfo['role'] == 'owner';
+    isOwner.value = userInfo['role'] == 'owner';
   }
 
   Future<void> getSales() async {
+    isLoading.value = true;
     try {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
@@ -65,6 +66,8 @@ class HomeController extends GetxController {
     } catch (e, s) {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: s);
+    }finally{
+      isLoading.value = false;
     }
   }
 
@@ -104,7 +107,9 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     loadUserInfo();
-    getSales();
+    getSales().then((_){
+      update();
+    });
     super.onInit();
   }
 }

@@ -16,6 +16,7 @@ class ProductView extends GetView<ProductController> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     bool isNavigating = false; // Debounce flag
 
     void navigateToRoute(String routeName, [dynamic arguments]) async {
@@ -49,7 +50,7 @@ class ProductView extends GetView<ProductController> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           scrolledUnderElevation: 0,
-          backgroundColor: Colors.blue,
+          backgroundColor: colorScheme.primary,
         ),
         body: Obx(() {
           if (!controller.isInternetAvailable.value) {
@@ -115,14 +116,19 @@ class ProductView extends GetView<ProductController> {
                     final String productImg = product.productImg ?? '';
                     final String imageUrl =
                         '${AppURL.appBaseUrl}/uploads/$productImg';
-
                     return InkWell(
                       onTap: () {
                         Get.toNamed(Routes.ADD_EDIT, arguments: product);
                       },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0, vertical: 6.0),
+                        padding: EdgeInsets.only(
+                        left: width * 0.01,
+                        right: width * 0.01,
+                        top: width * 0.015,
+                        bottom: index == controller.products.length - 1
+                        ? width * 0.20
+                        : width * 0.015,
+                        ),
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColors.cardColor.withOpacity(0.8),
@@ -135,26 +141,25 @@ class ProductView extends GetView<ProductController> {
                                 blurStyle: BlurStyle.outer,
                               ),
                             ],
-                            borderRadius: BorderRadius.circular(12.0),
+                            borderRadius: BorderRadius.circular(width * 0.03),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(12.0),
+                            padding: EdgeInsets.all(width * 0.04),
                             child: Row(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Column(
                                   children: [
                                     Container(
-                                      height: 190,
-                                      width: 135,
+                                      height: height / 4,
+                                      width: width / 2.5,
                                       decoration: BoxDecoration(
                                         borderRadius:
-                                        BorderRadius.circular(12.0),
+                                            BorderRadius.circular(12.0),
                                       ),
                                       child: ClipRRect(
                                         borderRadius:
-                                        BorderRadius.circular(10.0),
+                                            BorderRadius.circular(10.0),
                                         child: Image.network(
                                           imageUrl,
                                           width: width / 4,
@@ -166,10 +171,9 @@ class ProductView extends GetView<ProductController> {
                                               return child;
                                             } else {
                                               return Shimmer.fromColors(
-                                                baseColor:
-                                                Colors.grey[300]!,
+                                                baseColor: Colors.grey[300]!,
                                                 highlightColor:
-                                                Colors.grey[100]!,
+                                                    Colors.grey[100]!,
                                                 child: Container(
                                                   width: width / 4,
                                                   height: width / 4,
@@ -178,8 +182,8 @@ class ProductView extends GetView<ProductController> {
                                               );
                                             }
                                           },
-                                          errorBuilder: (context, error,
-                                              stackTrace) {
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
                                             return const Center(
                                               child: Icon(Icons.error,
                                                   color: Colors.red),
@@ -190,241 +194,147 @@ class ProductView extends GetView<ProductController> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(width: 16.0),
+                                SizedBox(width: width * 0.04),
                                 Expanded(
-                                  child: ConstrainedBox(
-                                    constraints:
-                                    const BoxConstraints(minHeight: 190),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceBetween,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            product.productName != null
-                                                ? Expanded(
-                                              child: Text(
-                                                product.productName ??
-                                                    '',
-                                                style: textTheme
-                                                    .titleLarge
-                                                    ?.copyWith(
-                                                  fontWeight:
-                                                  FontWeight
-                                                      .bold,
-                                                ),
-                                                maxLines: 2,
-                                                overflow:
-                                                TextOverflow
-                                                    .ellipsis,
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              product.productName.capitalize ?? '',
+                                              style: textTheme.titleLarge
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                            )
-                                                : Shimmer.fromColors(
-                                              baseColor:
-                                              Colors.grey[300]!,
-                                              highlightColor:
-                                              Colors.grey[100]!,
-                                              child: Container(
-                                                width:
-                                                double.infinity,
-                                                height: 20.0,
-                                                color: Colors.white,
-                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            const Icon(
-                                              Icons.edit,
-                                              size: 23.0,
-                                              color: Colors.blue,
-                                            )
-                                          ],
-                                        ),
-                                        SizedBox(height: width * 0.01),
-                                        const SizedBox(height: 4.0),
-                                        product.description != null
-                                            ? Text(
-                                          maxLines: 2,
-                                          overflow:
-                                          TextOverflow.ellipsis,
-                                          product.description ?? '',
-                                          style: textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                              color: Colors
-                                                  .grey[600],
-                                              fontSize: 14.0),
-                                        )
-                                            : Shimmer.fromColors(
-                                          baseColor:
-                                          Colors.grey[300]!,
-                                          highlightColor:
-                                          Colors.grey[100]!,
-                                          child: Container(
-                                            width: double.infinity,
-                                            height: 15.0,
-                                            color: Colors.white,
                                           ),
-                                        ),
-                                        const SizedBox(height: 4.0),
-                                        product.productPrice != null
-                                            ? Text(
-                                          '₹${product.productPrice ?? ''}',
-                                          style: textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                              color:
-                                              Colors.green,
-                                              fontSize: 18.0),
-                                        )
-                                            : Shimmer.fromColors(
-                                          baseColor:
-                                          Colors.grey[300]!,
-                                          highlightColor:
-                                          Colors.grey[100]!,
-                                          child: Container(
-                                            width: 80.0,
-                                            height: 20.0,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        product.warranty != null
-                                            ? Text(
-                                          'Warranty: ${product.warranty ?? ''} ${_getWarrantyLabel(product.warranty, product.warrantyType)}',
-                                          style: textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
+                                          Icon(
+                                            Icons.edit,
+                                            size: width * 0.065,
+                                            color: colorScheme.primary
+                                          )
+                                        ],
+                                      ),
+                                      SizedBox(height: width * 0.02),
+                                      Text(
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        product.description.capitalize ?? '',
+                                        style: textTheme.titleMedium?.copyWith(
                                             color: Colors.grey[600],
-                                          ),
-                                        )
-                                            : Shimmer.fromColors(
-                                          baseColor:
-                                          Colors.grey[300]!,
-                                          highlightColor:
-                                          Colors.grey[100]!,
-                                          child: Container(
-                                            width: 120.0,
-                                            height: 15.0,
-                                            color: Colors.white,
-                                          ),
+                                            fontSize: width * 0.035),
+                                      ),
+                                      SizedBox(height: width * 0.01),
+                                      Text(
+                                        '₹${product.productPrice ?? ''}',
+                                        style: textTheme.titleMedium?.copyWith(
+                                            color: Colors.green,
+                                            fontSize: width * 0.045),
+                                      ),
+                                      Text(
+                                        'Warranty: ${product.warranty ?? ''} ${_getWarrantyLabel(product.warranty, product.warrantyType)}',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: Colors.grey[600],
                                         ),
-                                        const SizedBox(height: 8.0),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed:
-                                                product.status != null
-                                                    ? () {}
-                                                    : null,
-                                                style: ElevatedButton
-                                                    .styleFrom(
-                                                  foregroundColor:
-                                                  Colors.white,
-                                                  backgroundColor:
-                                                  product.status ==
-                                                      "active"
-                                                      ? Colors.blue
-                                                      : Colors.grey,
-                                                  shape:
-                                                  RoundedRectangleBorder(
-                                                    borderRadius:
-                                                    BorderRadius
-                                                        .circular(8),
-                                                  ),
-                                                ),
-                                                child: product.status !=
-                                                    null
-                                                    ? Text(
-                                                  'Active',
-                                                  style: TextStyle(
-                                                    color: product.status ==
+                                      ),
+                                      SizedBox(height: width * 0.015),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: FilledButton(
+                                              style: FilledButton.styleFrom(
+                                                shape: product.status ==
                                                         "active"
-                                                        ? Colors
-                                                        .white
-                                                        : Colors
-                                                        .black,
-                                                  ),
-                                                )
-                                                    : Shimmer.fromColors(
-                                                  baseColor: Colors
-                                                      .grey[300]!,
-                                                  highlightColor:
-                                                  Colors.grey[
-                                                  100]!,
-                                                  child: Container(
-                                                    width: 80.0,
-                                                    height: 15.0,
-                                                    color: Colors
-                                                        .white,
-                                                  ),
-                                                ),
+                                                    ? null
+                                                    : RoundedRectangleBorder(
+                                                        side: const BorderSide(
+                                                            color: Colors.grey),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(
+                                                                    width *
+                                                                        0.018)),
+                                                backgroundColor:
+                                                    product.status == "active"
+                                                        ? colorScheme.primary
+                                                        : Colors.white,
+                                                padding: EdgeInsets.zero,
                                               ),
-                                            ),
-                                            const SizedBox(width: 8.0),
-                                            Expanded(
-                                              child: ElevatedButton(
-                                                onPressed:
-                                                product.status != null
-                                                    ? () {
-                                                  controller
-                                                      .showAlertDialogue(
-                                                      productId);
+                                              onPressed: () {
+                                                if (product.status ==
+                                                    "inactive") {
+                                                  controller.showAlertDialogue(
+                                                      productId, "Active");
                                                 }
-                                                    : null,
-                                                style: ElevatedButton
-                                                    .styleFrom(
-                                                  foregroundColor:
-                                                  Colors.white,
-                                                  backgroundColor:
-                                                  product.status ==
-                                                      "active"
-                                                      ? Colors.grey
-                                                      : Colors.blue,
-                                                  shape:
-                                                  RoundedRectangleBorder(
-                                                    borderRadius:
-                                                    BorderRadius
-                                                        .circular(8),
-                                                  ),
-                                                ),
-                                                child: product.status !=
-                                                    null
-                                                    ? Text(
-                                                  'Inactive',
-                                                  style: TextStyle(
-                                                    color: product.status ==
-                                                        "active"
-                                                        ? Colors
-                                                        .black
-                                                        : Colors
-                                                        .white,
-                                                  ),
-                                                )
-                                                    : Shimmer.fromColors(
-                                                  baseColor: Colors
-                                                      .grey[300]!,
-                                                  highlightColor:
-                                                  Colors.grey[
-                                                  100]!,
-                                                  child: Container(
-                                                    width: 80.0,
-                                                    height: 15.0,
-                                                    color: Colors
-                                                        .white,
-                                                  ),
-                                                ),
+                                              },
+                                              child: Text(
+                                                "Active",
+                                                style: textTheme.labelSmall!
+                                                    .copyWith(
+                                                        fontSize: width * 0.025,
+                                                        color: product.status ==
+                                                                "active"
+                                                            ? Colors.white
+                                                            : Colors.black),
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                          ),
+                                          SizedBox(width: width * 0.02),
+                                          Expanded(
+                                            child: FilledButton(
+                                              style: FilledButton.styleFrom(
+                                                  shape: product.status ==
+                                                          "inactive"
+                                                      ? null
+                                                      : RoundedRectangleBorder(
+                                                          side:
+                                                              const BorderSide(
+                                                                  color: Colors
+                                                                      .grey),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      width *
+                                                                          0.018)),
+                                                  backgroundColor:
+                                                      product.status ==
+                                                              "inactive"
+                                                          ? colorScheme.primary
+                                                          : Colors.white,
+                                                  padding: EdgeInsets.zero),
+                                              onPressed: () {
+                                                if (product.status ==
+                                                    "active") {
+                                                  controller.showAlertDialogue(
+                                                      productId, "InActive");
+                                                }
+                                              },
+                                              child: Text(
+                                                "InActive",
+                                                style: textTheme.labelMedium!
+                                                    .copyWith(
+                                                        fontSize: width*0.025,
+                                                        color: product.status ==
+                                                                "inactive"
+                                                            ? Colors.white
+                                                            : Colors.black),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -440,10 +350,11 @@ class ProductView extends GetView<ProductController> {
           );
         }),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: colorScheme.primary,
           onPressed: () {
             navigateToRoute(Routes.ADD_EDIT);
           },
-          child: const Icon(Icons.add),
+          child: const Icon(Icons.add,color: Colors.white,),
         ),
       ),
     );

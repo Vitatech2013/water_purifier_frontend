@@ -76,9 +76,9 @@ class ProductController extends GetxController {
     Future.delayed(const Duration(seconds: 1)).then((_) => fetchProducts());
   }
 
-  void showAlertDialogue(String id) {
+  void showAlertDialogue(String id,String state) {
     AppUtils.showModernDialog(
-        title: "Are you sure you want to Inactive",
+        title: "Are you sure you want to $state",
         button1Text: "Yes",
         button1Action: () {
           deleteProduct(id);

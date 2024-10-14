@@ -13,6 +13,7 @@ class SigninController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final loading = false.obs;
+  final isOwner = false.obs;
 
   @override
   void onClose() {
@@ -71,7 +72,14 @@ class SigninController extends GetxController {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', emailController.text.trim());
+        if(decodedResponse["role"]=="owner"){
         await prefs.setString("ownerId", decodedResponse["_id"]);
+        isOwner.value=true;
+        }
+        else{
+          await prefs.setString("technicianId", decodedResponse["_id"]);
+          isOwner.value=false;
+        }
         await prefs.setString("token", decodedResponse["token"]);
         await prefs.setString("role",decodedResponse["role"]);
         String email = emailController.text.trim();

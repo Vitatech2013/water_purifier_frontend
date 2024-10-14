@@ -37,7 +37,6 @@ class AddEditController extends GetxController {
   var selectedWarrantyType = 'M'.obs;
   final List<String> warrantyTypes = ["M", "Y"];
 
-  final RegExp specialCharRegex = RegExp(r'[!@#<>?":_`~;,[\]\\|=+×÷$)(*&^%-]');
 
   @override
   void onInit() {
@@ -74,8 +73,11 @@ class AddEditController extends GetxController {
     if(productName.isEmpty){
       productNameError.value = 'Product name is required';
     }
-    else if(specialCharRegex.hasMatch(productName)){
-      productNameError.value = 'Should not contain special characters';
+    else if(RegExp(r'^[0-9]').hasMatch(productName)){
+      productNameError.value = 'Product name shouldn\'t starts with a number';
+    }
+    else if(!RegExp(r'^[a-zA-Z0-9 ]+$').hasMatch(productName)){
+      productNameError.value = 'Product name shouldn\'t contain special characters';
     }
     else{
       productNameError.value = '';
@@ -86,10 +88,13 @@ class AddEditController extends GetxController {
   void validateProductDescription() {
     String productDescription = productDescriptionController.text.trim();
     if(productDescription.isEmpty){
-      productDescriptionError.value = 'Product Description is required';
+      productDescriptionError.value = 'Product description is required';
     }
-    else if(specialCharRegex.hasMatch(productDescription)){
-      productDescriptionError.value = 'Should not contain special characters';
+    else if(RegExp(r'^[0-9]').hasMatch(productDescription)){
+      productDescriptionError.value = 'Product description shouldn\'t starts with a number';
+    }
+    else if(!RegExp(r'^[a-zA-Z0-9 ]+$').hasMatch(productDescription)){
+      productDescriptionError.value = 'Product description shouldn\'t contain special characters';
     }
     else{
       productDescriptionError.value = '';
@@ -97,13 +102,14 @@ class AddEditController extends GetxController {
   }
 
   void validateProductPrice() {
-    if(productPriceController.text.isEmpty){
+    final productPrice = productPriceController.text.trim();
+    if(productPrice.isEmpty){
       productPriceError.value = 'Product price is required';
     }
-    else if(!productPriceController.text.isNum){
+    else if(!productPrice.isNum){
       productPriceError.value = 'Product price should be number';
     }
-    else if (double.parse(productPriceController.text)<=0){
+    else if (double.parse(productPrice)<=0){
       productPriceError.value= 'product price should be greater than zero';
     }
     else{
@@ -112,7 +118,16 @@ class AddEditController extends GetxController {
   }
 
   void validateWarranty() {
-    warrantyError.value = warrantyController.text.isEmpty ? '' : '';
+    final productWarranty = warrantyController.text.trim();
+    if(!productWarranty.isNum){
+      warrantyError.value = 'should be number';
+    }
+    else if (double.parse(productWarranty)<=0){
+      warrantyError.value= 'greater than zero';
+    }
+    else{
+      warrantyError.value="";
+    }
   }
 
   Future<void> saveProduct() async {
