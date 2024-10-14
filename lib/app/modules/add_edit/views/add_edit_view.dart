@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:water_purifier/app/core/app_config/app_urls.dart';
 import 'package:water_purifier/app/modules/add_edit/controllers/add_edit_controller.dart';
 
@@ -11,10 +12,10 @@ class AddEditView extends GetView<AddEditController> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final width = MediaQuery.of(context).size.width;
     final imageUrl =
         '${AppURL.appBaseUrl}/uploads/${controller.initialImage.value}';
-    final isLocalFile = controller.initialImage.value.startsWith('file://');
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -37,7 +38,7 @@ class AddEditView extends GetView<AddEditController> {
         backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -54,34 +55,74 @@ class AddEditView extends GetView<AddEditController> {
                     ),
                   );
                 } else {
+                  bool isLocalFile =
+                      controller.initialImage.value.startsWith('file://') ||
+                          controller.initialImage.value.startsWith('/');
                   return InkWell(
-                    onTap: () {
-                      controller.pickImage(ImageSource.camera);
-                    },
-                    child:
-                    Stack(
-                      children: [
-                        Image.network(
-                          imageUrl,
-                          height: width / 2.5,
-                          fit: BoxFit.cover,
-                        ),
-                        Positioned(
-                          top: 0,
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Icon(
-                              Icons.camera_alt,
-                              color: Colors.grey,
-                              size: width/8,
+                      onTap: () {
+                        controller.pickImage(ImageSource.camera);
+                      },
+                      child: Stack(
+                        children: [
+                          isLocalFile
+                              ? FutureBuilder(
+                                  future: Future.delayed(1.seconds),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                            ConnectionState.done &&
+                                        snapshot.hasData) {
+                                      return Image.file(
+                                        snapshot.data!,
+                                        height: width / 2.5,
+                                        fit: BoxFit.cover,
+                                      );
+                                    } else {
+                                      return Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(
+                                          height: width / 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                )
+                              : Image.network(
+                                  imageUrl,
+                                  height: width / 2.5,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    } else {
+                                      return Shimmer.fromColors(
+                                        baseColor: Colors.grey[300]!,
+                                        highlightColor: Colors.grey[100]!,
+                                        child: Container(
+                                          height: width / 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                          Positioned(
+                            top: 0,
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Icon(
+                                Icons.camera_alt,
+                                color: Colors.grey,
+                                size: width / 8,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  );
+                        ],
+                      ));
                 }
               }),
               SizedBox(height: width * 0.04),
@@ -89,12 +130,14 @@ class AddEditView extends GetView<AddEditController> {
                 () => FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor:
-                        controller.loading.value ? Colors.grey : Colors.blue,
+                        controller.loading.value ? Colors.grey : colorScheme.primary,
                     padding: EdgeInsets.symmetric(
                       horizontal: width / 4,
                     ),
                   ),
-                  onPressed: () => controller.pickImage(ImageSource.gallery),
+                  onPressed: () {
+                    controller.pickImage(ImageSource.gallery);
+                  },
                   child: const Text('Gallery'),
                 ),
               ),
@@ -110,11 +153,14 @@ class AddEditView extends GetView<AddEditController> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Name',
+                        hintText: 'Enter the product name',
                         errorText: controller.productNameError.value.isNotEmpty
                             ? controller.productNameError.value
                             : null,
                       ),
-                      onChanged: (value) => controller.validateProductName(),
+                      onChanged: (value) {
+                        controller.validateProductName();
+                      },
                       textInputAction: TextInputAction.next,
                     );
                   }),
@@ -128,6 +174,7 @@ class AddEditView extends GetView<AddEditController> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Description',
+                        hintText: 'Enter the product description',
                         errorText:
                             controller.productDescriptionError.value.isNotEmpty
                                 ? controller.productDescriptionError.value
@@ -147,6 +194,7 @@ class AddEditView extends GetView<AddEditController> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(width * 0.03)),
                         labelText: 'Product Price',
+                        hintText: 'Enter the product price',
                         errorText: controller.productPriceError.value.isNotEmpty
                             ? controller.productPriceError.value
                             : null,
@@ -209,12 +257,14 @@ class AddEditView extends GetView<AddEditController> {
                   }),
                   SizedBox(height: width * 0.05),
                   Obx(
-                      ()=> FilledButton(
+                    () => FilledButton(
                       style: FilledButton.styleFrom(
-                        backgroundColor: controller.loading.value?Colors.grey:Colors.blue
-                      ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: controller.loading.value
+                              ? Colors.grey
+                              : colorScheme.primary),
                       onPressed: () {
-                        if(controller.loading.value==false){
+                        if (controller.loading.value == false) {
                           controller.saveProduct();
                         }
                       },

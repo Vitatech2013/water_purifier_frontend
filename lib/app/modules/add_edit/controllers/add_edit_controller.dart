@@ -37,6 +37,7 @@ class AddEditController extends GetxController {
   var selectedWarrantyType = 'M'.obs;
   final List<String> warrantyTypes = ["M", "Y"];
 
+
   @override
   void onInit() {
     super.onInit();
@@ -62,28 +63,54 @@ class AddEditController extends GetxController {
     final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
       selectedImage.value = File(pickedFile.path);
+      initialImage.value = pickedFile.path;
     }
   }
 
   // Validation Methods
   void validateProductName() {
-    productNameError.value = productNameController.text.isEmpty
-        ? 'Product name is required'
-        : '';
+    String productName = productNameController.text.trim();
+    if(productName.isEmpty){
+      productNameError.value = 'Product name is required';
+    }
+    else if(RegExp(r'^[0-9]').hasMatch(productName)){
+      productNameError.value = 'Product name shouldn\'t starts with a number';
+    }
+    else if(!RegExp(r'^[a-zA-Z0-9 ]+$').hasMatch(productName)){
+      productNameError.value = 'Product name shouldn\'t contain special characters';
+    }
+    else{
+      productNameError.value = '';
+    }
+
   }
 
   void validateProductDescription() {
-    productDescriptionError.value = productDescriptionController.text.isEmpty
-        ? 'Description is required'
-        : '';
+    String productDescription = productDescriptionController.text.trim();
+    if(productDescription.isEmpty){
+      productDescriptionError.value = 'Product description is required';
+    }
+    else if(RegExp(r'^[0-9]').hasMatch(productDescription)){
+      productDescriptionError.value = 'Product description shouldn\'t starts with a number';
+    }
+    else if(!RegExp(r'^[a-zA-Z0-9 ]+$').hasMatch(productDescription)){
+      productDescriptionError.value = 'Product description shouldn\'t contain special characters';
+    }
+    else{
+      productDescriptionError.value = '';
+    }
   }
 
   void validateProductPrice() {
-    if(productPriceController.text.isEmpty){
+    final productPrice = productPriceController.text.trim();
+    if(productPrice.isEmpty){
       productPriceError.value = 'Product price is required';
     }
-    else if(!productPriceController.text.isNum){
+    else if(!productPrice.isNum){
       productPriceError.value = 'Product price should be number';
+    }
+    else if (double.parse(productPrice)<=0){
+      productPriceError.value= 'product price should be greater than zero';
     }
     else{
       productPriceError.value="";
@@ -91,7 +118,16 @@ class AddEditController extends GetxController {
   }
 
   void validateWarranty() {
-    warrantyError.value = warrantyController.text.isEmpty ? '' : '';
+    final productWarranty = warrantyController.text.trim();
+    if(!productWarranty.isNum){
+      warrantyError.value = 'should be number';
+    }
+    else if (double.parse(productWarranty)<=0){
+      warrantyError.value= 'greater than zero';
+    }
+    else{
+      warrantyError.value="";
+    }
   }
 
   Future<void> saveProduct() async {
@@ -146,7 +182,8 @@ class AddEditController extends GetxController {
           'warranty': warrantyController.text,
           'description': productDescriptionController.text,
           'warrantyType': selectedWarrantyType.value == 'M' ? 'months' : 'years',
-          //'ownerId': ownerId,
+          'ownerId': ownerId,
+          'status':"",
         });
 
         // Handle image file

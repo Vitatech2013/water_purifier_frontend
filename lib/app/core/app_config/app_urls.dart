@@ -2,9 +2,11 @@ class AppURL {
   AppURL._();
 
   //Urls
-  static const appBaseUrl = 'http://78.142.47.247:7000';
+  // static const appBaseUrl = 'http://78.142.47.247:7000';
+  static const appBaseUrl = 'http://78.142.47.247:7002';
   //login
-  static const login = '/api/owner/login';
+  // static const login = '/api/owner/login';
+  static const login = '/api/auth/login';
   //products
   static const addProduct = '/api/product/add';
   static const fetchProducts = '/api/product/';
@@ -23,4 +25,10 @@ class AppURL {
 
   //edit person
     static const editPerson ='/api/user/users/';
+
+    //technician
+    static const addTechnician='/api/technician/register';
+    static const getTechnician='/api/technician/';
+    static const editTechnician='/api/technician/';
+    static const deleteTechnician='/api/technician/';
 }

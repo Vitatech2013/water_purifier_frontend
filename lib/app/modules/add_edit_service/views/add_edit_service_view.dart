@@ -8,6 +8,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final colorScheme = Theme.of(context).colorScheme;
     final loading = controller.loading.value;
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +28,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
         ),
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.blue,
+        backgroundColor: colorScheme.primary,
       ),
       body: Padding(
         padding:  EdgeInsets.all(width*0.04),
@@ -45,6 +46,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     errorText:controller.serviceNameError.value.isNotEmpty? controller.serviceNameError.value:"",
                     onChanged: (value) => controller.validateServiceName(),
                     width: width,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
                  SizedBox(height: width*0.04),
@@ -53,11 +55,12 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     enabled: !loading,
                     controller: controller.serviceDescriptionController,
                     labelText: 'Service Description',
-                    hintText: 'Enter a description',
+                    hintText: 'Enter the Service description',
                     maxLines: 3,
                     errorText: controller.serviceDescriptionError.value,
                     onChanged: (value) => controller.validateServiceDescription(),
                     width: width,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
                  SizedBox(height: width*0.04),
@@ -66,18 +69,20 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
                     enabled: !loading,
                     controller: controller.servicePriceController,
                     labelText: 'Service Price',
-                    hintText: 'Enter the price',
+                    hintText: 'Enter the service price',
                     keyboardType: TextInputType.number,
                     errorText: controller.servicePriceError.value,
                     onChanged: (value) => controller.validateServicePrice(),
                     width: width,
+                    textInputAction: TextInputAction.done,
                   ),
                 ),
                  SizedBox(height: width*0.06),
                 Obx(
                   ()=> FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: controller.loading.value?Colors.grey:Colors.blue,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: controller.loading.value?Colors.grey:colorScheme.primary,
                     ),
                     onPressed: () {
                       if(controller.loading.value==false){
@@ -103,7 +108,8 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
     TextInputType keyboardType = TextInputType.text,
     required String errorText,
     required ValueChanged<String> onChanged,
-    required double width
+    required double width,
+    required TextInputAction textInputAction,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,6 +128,7 @@ class AddEditServiceView extends GetView<AddEditServiceController> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           onChanged: onChanged,
+          textInputAction: textInputAction,
         ),
       ],
     );

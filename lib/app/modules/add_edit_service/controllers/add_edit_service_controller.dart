@@ -21,28 +21,34 @@ class AddEditServiceController extends GetxController {
   RxString serviceDescriptionError = ''.obs;
   RxString servicePriceError = ''.obs;
 
+  final RegExp specialCharRegExp = RegExp(r'^[a-zA-Z0-9 ]+$');
+
   @override
   void onInit() {
     super.onInit();
     final dynamic service = Get.arguments;
 
-    if (service is ServiceResponse) {
+    if (service is Data) {
       serviceId.value = service.id;
-      serviceNameController.text = service.name;
-      serviceDescriptionController.text = service.description;
-      servicePriceController.text = service.price.toString();
+      serviceNameController.text = service.serviceName;
+      serviceDescriptionController.text = service.serviceDescription;
+      servicePriceController.text = service.servicePrice.toString();
     } else {
       print('Unexpected type for Get.arguments: ${service.runtimeType}');
     }
 
-    serviceNameController.addListener(validateServiceName);
-    serviceDescriptionController.addListener(validateServiceDescription);
-    servicePriceController.addListener(validateServicePrice);
   }
 
   void validateServiceName() {
-    if(serviceNameController.text.isEmpty){
+    final serviceName = serviceNameController.text.trim();
+    if(serviceName.isEmpty){
       serviceNameError.value = 'Service name is required';
+    }
+    else if(RegExp(r'^[0-9]').hasMatch(serviceName)){
+      serviceNameError.value = 'Service name shouldn\'t starts with a number';
+    }
+    else if(!(specialCharRegExp.hasMatch(serviceName))){
+      serviceNameError.value = "Service name shouldn\'t not contain special characters";
     }
     else{
       serviceNameError.value = '';
@@ -50,18 +56,29 @@ class AddEditServiceController extends GetxController {
   }
 
   void validateServiceDescription() {
-    serviceDescriptionError.value = serviceDescriptionController.text.isEmpty
-        ? 'Service description is required'
-        : '';
+    final serviceDescription =serviceDescriptionController.text.trim();
+    if(serviceDescription.isEmpty){
+      serviceDescriptionError.value = 'Service description is required';
+    }
+    else if(RegExp(r'^[0-9]').hasMatch(serviceDescription)){
+      serviceDescriptionError.value = 'Service description shouldn\'t starts with a number';
+    }
+    else if(!(specialCharRegExp.hasMatch(serviceDescription))){
+      serviceDescriptionError.value = "Service description shouldn\'t not contain special characters";
+    }
+    else{
+      serviceDescriptionError.value = '';
+    }
   }
 
   void validateServicePrice() {
-    if(servicePriceController.text.isEmpty){
+    final servicePrice = servicePriceController.text.trim();
+    if(servicePrice.isEmpty){
     servicePriceError.value ='Service price is required';
     }
-    else if(!servicePriceController.text.isNum){
+    else if(!servicePrice.isNum){
       servicePriceError.value='Service price should be a number';
-    }else if(double.parse(servicePriceController.text)>0){
+    }else if(double.parse(servicePrice)<=0){
       servicePriceError.value ='Service price should be greater than zero';
     }
     else{
@@ -91,7 +108,6 @@ class AddEditServiceController extends GetxController {
           return;
         }
 
-        // Determine if this is an add or update operation
         final isUpdating = serviceId.value.isNotEmpty;
         final url = isUpdating
             ? '${AppURL.appBaseUrl}${AppURL.updateService}/${serviceId.value}'
@@ -104,13 +120,13 @@ class AddEditServiceController extends GetxController {
 
         // Prepare the request body
         var body = json.encode({
-          'name': serviceNameController.text,
-          'description': serviceDescriptionController.text,
-          'price': servicePriceController.text,
+          'serviceName': serviceNameController.text.trim(),
+          'serviceDescription': serviceDescriptionController.text.trim(),
+          'servicePrice': servicePriceController.text.trim(),
           'ownerId': ownerId, // Include ownerId in the body
+          'status':"",
         });
 
-        // Create the request based on the action (update or add)
         var request = isUpdating
             ? http.Request('PUT', Uri.parse(url))
             : http.Request('POST', Uri.parse(url));

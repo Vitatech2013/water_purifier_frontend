@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class SaleView extends GetView<SaleController> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final width = MediaQuery.of(context).size.width;
     return WillPopScope(
       onWillPop: () async {
@@ -36,25 +38,29 @@ class SaleView extends GetView<SaleController> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           scrolledUnderElevation: 0,
-          backgroundColor: Colors.blue,
+          backgroundColor: colorScheme.primary,
         ),
         body: Obx(() {
-          if(!controller.isInternetAvailable.value){
+          if (!controller.isInternetAvailable.value) {
             return Center(
               child: Padding(
-                padding:  EdgeInsets.symmetric(horizontal: width*0.12),
+                padding: EdgeInsets.symmetric(horizontal: width * 0.12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.signal_wifi_connected_no_internet_4,size: width/2,color: Colors.redAccent,),
-                    SizedBox(height: width*0.04),
+                    Icon(
+                      Icons.signal_wifi_connected_no_internet_4,
+                      size: width / 2,
+                      color: Colors.redAccent,
+                    ),
+                    SizedBox(height: width * 0.04),
                     Text(
                       "Please check your internet connection.",
                       style: textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: width*0.04),
+                    SizedBox(height: width * 0.04),
                     FilledButton(
                       onPressed: () {
                         controller.internetAvailableAndLoadData();
@@ -72,11 +78,13 @@ class SaleView extends GetView<SaleController> {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  "Oops! It looks empty here. Why not add some Sales?",
-                  style: textTheme.titleLarge,
-                  textAlign: TextAlign.center,
-                ),
+                controller.showProgressIndicator.value
+                    ? const Center(child: CircularProgressIndicator())
+                    : Text(
+                        "Oops! It looks empty here. Why not add some Sales?",
+                        style: textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
               ],
             );
           } else {
@@ -132,12 +140,16 @@ class SaleView extends GetView<SaleController> {
           }
         }),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: colorScheme.primary,
           onPressed: () {
             Get.toNamed(
               Routes.ADD_EDIT_SALE,
             );
           },
-          child: const Icon(Icons.add),
+          child: const Icon(
+            Icons.add,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -150,7 +162,13 @@ class SaleView extends GetView<SaleController> {
       itemBuilder: (context, index) {
         final sale = saleIndex[index];
         return Container(
-          margin: EdgeInsets.all(width * 0.04),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          margin: EdgeInsets.only(
+            top: width * 0.04,
+            bottom: index == saleIndex.length - 1 ? width * 0.25 : width * 0.04,
+            left: width * 0.04,
+            right: width * 0.04,
+          ),
           padding: EdgeInsets.all(width * 0.04),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -182,17 +200,18 @@ class SaleView extends GetView<SaleController> {
                       overflow: TextOverflow.ellipsis),
                 ),
                 IconButton(
-                    onPressed: () {
-                      Get.toNamed(Routes.ADD_EDIT_SALE, arguments: {
-                        "userId": sale.user?.id,
-                        "userName": sale.user?.name,
-                        "userMobile": sale.user?.mobile,
-                      });
-                    },
-                    icon: const Icon(
-                      Icons.edit,
-                      size: 20,
-                    )),
+                  onPressed: () {
+                    Get.toNamed(Routes.ADD_EDIT_SALE, arguments: {
+                      "userId": sale.user?.id,
+                      "userName": sale.user?.name,
+                      "userMobile": sale.user?.mobile,
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.edit,
+                    size: 20,
+                  ),
+                ),
               ],
             ),
             tilePadding: EdgeInsets.zero,
@@ -233,7 +252,6 @@ class SaleView extends GetView<SaleController> {
                                       // Use a default value if salePrice is null
                                     })
                                 .toList();
-
                             _showAddProductDialog(
                               context,
                               sale.user!.name,
@@ -247,7 +265,7 @@ class SaleView extends GetView<SaleController> {
                               context,
                               sale.user!.name,
                               sale.user!.mobile,
-                              [], // Pass an empty list if no products are added
+                              [],
                               width,
                             );
                           }
@@ -348,10 +366,6 @@ class SaleView extends GetView<SaleController> {
                             ],
                           ),
                           SizedBox(height: width * 0.03),
-                          // Text(
-                          //   'Expiry Date: ${formatToMDY(product.warrantyExpiry)}',
-                          //   style: const TextStyle(fontSize: 16),
-                          // ),
                           Text(
                               "Product Price: ${product.salePrice.floor().toString() ?? "N/A"}",
                               style: textTheme.titleMedium!
@@ -401,6 +415,7 @@ class SaleView extends GetView<SaleController> {
       ),
       itemBuilder: (context, index) {
         final service = services[index];
+        log(service.serviceType!.serviceName ?? "Service name not available");
         return Container(
           padding: EdgeInsets.all(width * 0.02),
           decoration: BoxDecoration(
@@ -414,9 +429,10 @@ class SaleView extends GetView<SaleController> {
               SizedBox(width: width * 0.02),
               Expanded(
                 child: Text(
-                  service.serviceType?.name ?? "Not Available",
-                  style: const TextStyle(fontSize: 14),
-                  overflow: TextOverflow.visible, // Allow text to be visible
+                  service.serviceType?.serviceName ?? "Not Available",
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
+                  overflow: TextOverflow.visible,
+                  // Allow text to be visible
                 ),
               ),
             ],
@@ -432,238 +448,265 @@ class SaleView extends GetView<SaleController> {
 
   void _showAddProductDialog(BuildContext context, String name, String mobile,
       List addedProductDetails, double width) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(width * 0.03),
-          ),
-          elevation: 5,
-          backgroundColor: Colors.white,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
+    final activeProducts = controller.productList
+        .where((product) => product.status == "active")
+        .toList();
+    print(controller.productList.toString());
+    print(activeProducts.toString());
+    if (activeProducts.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(width * 0.03),
             ),
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              } else {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(width * 0.04),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(width * 0.005),
-                          topRight: Radius.circular(width * 0.03),
+            elevation: 5,
+            backgroundColor: Colors.white,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: activeProducts.length < 2
+                    ? MediaQuery.of(context).size.height * 0.3
+                    : activeProducts.length < 3
+                        ? MediaQuery.of(context).size.height * 0.4
+                        : activeProducts.length < 4
+                            ? MediaQuery.of(context).size.height * 0.5
+                            : MediaQuery.of(context).size.height * 0.6,
+              ),
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                } else {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(width * 0.04),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(width * 0.005),
+                            topRight: Radius.circular(width * 0.03),
+                          ),
+                        ),
+                        child: Text(
+                          'Select Product',
+                          style: TextStyle(
+                              fontSize: width * 0.05,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: Text(
-                        'Select Product',
-                        style: TextStyle(
-                            fontSize: width * 0.05,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: controller.productList.length,
-                        itemBuilder: (context, index) {
-                          final product = controller.productList[index];
-                          final addedProduct = addedProductDetails.firstWhere(
-                            (detail) => detail['id'] == product.id.toString(),
-                            orElse: () => {
-                              'id': '',
-                              'salePrice': 0.0
-                            }, // Default map with empty ID and default salePrice
-                          );
-                          final bool isAdded =
-                              addedProduct['id'] == product.id.toString();
-                          final double salePrice =
-                              addedProduct['salePrice'] as double;
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: activeProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = activeProducts[index];
+                            final addedProduct = addedProductDetails.firstWhere(
+                              (detail) => detail['id'] == product.id.toString(),
+                              orElse: () => {
+                                'id': '',
+                                'salePrice': 0.0
+                              }, // Default map with empty ID and default salePrice
+                            );
+                            final bool isAdded =
+                                addedProduct['id'] == product.id.toString();
 
-                          return ListTile(
-                            title: Text(product.productName,
-                                style: TextStyle(
-                                    fontSize: width * 0.04,
-                                    fontWeight: FontWeight.bold)),
-                            subtitle: Row(
-                              children: [
-                                Text("Price: ${product.productPrice.floor()}"),
-                              ],
-                            ),
-                            trailing: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    isAdded ? Colors.grey : Colors.blue,
+                            return ListTile(
+                              title: Text(product.productName,
+                                  style: TextStyle(
+                                      fontSize: width * 0.04,
+                                      fontWeight: FontWeight.bold)),
+                              subtitle: Row(
+                                children: [
+                                  Text(
+                                      "Price: ${product.productPrice.floor()}"),
+                                ],
                               ),
-                              onPressed: () {
-                                if (isAdded) {
-                                  Get.snackbar(
-                                    'Product Already Added',
-                                    '${product.productName} is already added.',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.redAccent,
-                                    colorText: Colors.white,
-                                  );
-                                } else {
-                                  // controller.saveSale(
-                                  //     name: name,
-                                  //     mobile: mobile,
-                                  //     productId: product.id,
-                                  //     salePrice: product.productPrice.toString());
-                                  Get.back();
-                                  Get.toNamed(Routes.ADD_EDIT_SALE, arguments: {
-                                    "name": name,
-                                    "mobile": mobile,
-                                    "productId": product.id,
-                                  });
-                                }
-                              },
-                              child: Text(
-                                isAdded ? 'Added' : 'Add',
-                                style: const TextStyle(color: Colors.white),
+                              trailing: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      isAdded ? Colors.grey : Colors.blue,
+                                ),
+                                onPressed: () {
+                                  if (isAdded) {
+                                    Get.snackbar(
+                                      'Product Already Added',
+                                      '${product.productName} is already added.',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      backgroundColor: Colors.redAccent,
+                                      colorText: Colors.white,
+                                    );
+                                  } else {
+                                    Get.back();
+                                    Get.toNamed(Routes.ADD_EDIT_SALE,
+                                        arguments: {
+                                          "name": name,
+                                          "mobile": mobile,
+                                          "productId": product.id,
+                                        });
+                                  }
+                                },
+                                child: Text(
+                                  isAdded ? 'Added' : 'Add',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(width * 0.04),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent.shade100,
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Close',
-                          style: TextStyle(color: Colors.white),
+                            );
+                          },
                         ),
                       ),
-                    ),
-                  ],
-                );
-              }
-            }),
-          ),
-        );
-      },
-    );
+                      Padding(
+                        padding: EdgeInsets.all(width * 0.04),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent.shade100,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Close',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              }),
+            ),
+          );
+        },
+      );
+    } else {
+      Get.snackbar(
+        'No Active Products',
+        'There are no active products available.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
   }
 
   void _showAddServiceDialog(
       BuildContext context, String saleId, String productId, double width) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(width * 0.03),
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
+    final activeServices = controller.serviceList
+        .where((service) => service.status == "active")
+        .toList();
+    print(jsonEncode(activeServices));
+    if (activeServices.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(width * 0.03),
             ),
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              } else {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(width * 0.04),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(width * 0.005),
-                          topRight: Radius.circular(width * 0.03),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: activeServices.length < 2
+                    ? MediaQuery.of(context).size.height * 0.3
+                    : activeServices.length < 3
+                        ? MediaQuery.of(context).size.height * 0.4
+                        : activeServices.length < 4
+                            ? MediaQuery.of(context).size.height * 0.5
+                            : MediaQuery.of(context).size.height * 0.6,
+              ),
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                } else {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(width * 0.04),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(width * 0.005),
+                            topRight: Radius.circular(width * 0.03),
+                          ),
+                        ),
+                        child: Text(
+                          'Select Service',
+                          style: TextStyle(
+                              fontSize: width * 0.043,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600),
                         ),
                       ),
-                      child: Text(
-                        'Select Service',
-                        style: TextStyle(
-                            fontSize: width * 0.043,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: controller.serviceList.length,
-                        itemBuilder: (context, index) {
-                          final service = controller.serviceList[index];
-                          return ListTile(
-                            title: Text(service.name,
-                                style: TextStyle(
-                                    fontSize: width * 0.04,
-                                    fontWeight: FontWeight.bold)),
-                            subtitle: Text("Price:${service.price.floor()}"),
-                            trailing: TextButton(
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: width * 0.045,
-                                    vertical: width * 0.025),
-                                backgroundColor: Colors.green,
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: activeServices.length,
+                          itemBuilder: (context, index) {
+                            final service = activeServices[index];
+                            return ListTile(
+                              title: Text(service.serviceName,
+                                  style: TextStyle(
+                                      fontSize: width * 0.04,
+                                      fontWeight: FontWeight.bold)),
+                              subtitle:
+                                  Text("Price:${service.servicePrice.floor()}"),
+                              trailing: TextButton(
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: width * 0.045,
+                                      vertical: width * 0.025),
+                                  backgroundColor: Colors.green,
+                                ),
+                                onPressed: () {
+                                  controller
+                                      .postService(
+                                    saleId: saleId,
+                                    productId: productId,
+                                    serviceTypeId: service.id,
+                                    servicePrice:
+                                        service.servicePrice.toDouble(),
+                                    salePrice: 2000.0,
+                                  )
+                                      .then((_) {
+                                    Get.back();
+                                  });
+                                },
+                                child: const Text('Add',
+                                    style: TextStyle(color: Colors.white)),
                               ),
-                              onPressed: () {
-                                // if (controller.addedServiceIds
-                                //     .contains(service.id)) {
-                                //   ScaffoldMessenger.of(context).showSnackBar(
-                                //     SnackBar(
-                                //       content: Text(
-                                //           '${service.name} is already added.'),
-                                //       backgroundColor: Colors.redAccent,
-                                //     ),
-                                //   );
-                                // } else {
-                                controller
-                                    .postService(
-                                  saleId: saleId,
-                                  productId: productId,
-                                  serviceTypeId: service.id,
-                                  servicePrice: service.price.toDouble(),
-                                  salePrice: 2000.0,
-                                )
-                                    .then((_) {
-                                  Navigator.pop(context);
-                                });
-                                // }
-                              },
-                              child: const Text('Add',
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent.shade100,
+                            );
+                          },
                         ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Close',
-                            style: TextStyle(color: Colors.white)),
                       ),
-                    ),
-                  ],
-                );
-              }
-            }),
-          ),
-        );
-      },
-    );
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent.shade100,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Close',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              }),
+            ),
+          );
+        },
+      );
+    } else {
+      Get.snackbar(
+        'No Active Services',
+        'There are no active services available.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
   }
 }

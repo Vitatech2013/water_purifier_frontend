@@ -20,6 +20,7 @@ class ServiceView extends GetView<ServiceController> {
         return false;
       },
       child: Scaffold(
+        backgroundColor: Colors.white.withOpacity(0.9),
         appBar: AppBar(
           leading: IconButton(
             onPressed: () {
@@ -35,25 +36,29 @@ class ServiceView extends GetView<ServiceController> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           scrolledUnderElevation: 0,
-          backgroundColor: Colors.blue,
+          backgroundColor: colorScheme.primary,
         ),
         body: Obx(() {
-          if(!controller.isInternetAvailable.value){
+          if (!controller.isInternetAvailable.value) {
             return Center(
               child: Padding(
-                padding:  EdgeInsets.symmetric(horizontal: width*0.12),
+                padding: EdgeInsets.symmetric(horizontal: width * 0.12),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(Icons.signal_wifi_connected_no_internet_4,size: width/2,color: Colors.redAccent,),
-                    SizedBox(height: width*0.04),
+                    Icon(
+                      Icons.signal_wifi_connected_no_internet_4,
+                      size: width / 2,
+                      color: Colors.redAccent,
+                    ),
+                    SizedBox(height: width * 0.04),
                     Text(
                       "Please check your internet connection.",
                       style: textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: width*0.04),
+                    SizedBox(height: width * 0.04),
                     FilledButton(
                       onPressed: () {
                         controller.internetAvailableAndLoadData();
@@ -84,7 +89,6 @@ class ServiceView extends GetView<ServiceController> {
 
           return Column(
             children: [
-              SizedBox(height: width * 0.015),
               controller.isEditing.value
                   ? const LinearProgressIndicator()
                   : const LimitedBox(),
@@ -95,74 +99,174 @@ class ServiceView extends GetView<ServiceController> {
                   itemBuilder: (context, index) {
                     final service = controller.services[index];
                     final serviceId = service.id;
-
-                    return InkWell(
-                      onTap: ()
-                      {
-                        Get.toNamed(Routes.ADD_EDIT_SERVICE,
-                            arguments: service);
-                      },
-                      child: Card(
-                        elevation: width * 0.017,
-                        margin: EdgeInsets.symmetric(vertical: width * 0.02),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(width * 0.02),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                              top: width * 0.04,
-                              right: width * 0.04,
-                              bottom: width * 0.115,
-                              left: width * 0.04),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                service.name,
-                                style: textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: index == controller.services.length - 1
+                          ? width * 0.20
+                          : width * 0.06,),
+                      child: InkWell(
+                        onTap: () {
+                          Get.toNamed(Routes.ADD_EDIT_SERVICE,
+                              arguments: service);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(width * 0.03),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 6,
+                                spreadRadius: 2,
                               ),
-                              SizedBox(height: width * 0.017),
-                              Text(
-                                '💰 ${service.price}',
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: Colors.green[700],
-                                ),
-                              ),
-                              SizedBox(height: width * 0.02),
-                              Text(
-                                service.description,
-                                style: textTheme.titleMedium?.copyWith(
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                              SizedBox(height: width * 0.03),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
+                            ],
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              left: width * 0.01,
+                              right: width * 0.01,
+                              top: width * 0.015,
+                            ),
+                            child: Padding(
+                              padding:  EdgeInsets.all(width * 0.04),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      Get.toNamed(Routes.ADD_EDIT_SERVICE,
-                                          arguments: service);
-                                    },
-                                    icon: const Icon(Icons.edit,
-                                        color: Colors.blue),
-                                    tooltip: 'Edit',
+                                  // Header Row with Service Name and Edit Icon
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          service.serviceName,
+                                          style: textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        style: IconButton.styleFrom(
+                                            padding: EdgeInsets.zero),
+                                        onPressed: () {
+                                          Get.toNamed(Routes.ADD_EDIT_SERVICE,
+                                              arguments: service);
+                                        },
+                                        icon:  Icon(Icons.edit,
+                                            color: colorScheme.primary),
+                                        tooltip: 'Edit',
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    onPressed: () {
-                                      controller.showAlertDialogue(serviceId);
-                                      // controller.deleteService(serviceId);
-                                    },
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    tooltip: 'Delete',
+                                  SizedBox(height: width * 0.015),
+
+                                  // Service Description
+                                  Text(
+                                    service.serviceDescription,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey[700],
+                                      fontSize: width * 0.038,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: width * 0.025),
+
+                                  // Service Price
+                                  Text(
+                                    '₹${service.servicePrice}',
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: Colors.green[700],
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: width * 0.045,
+                                    ),
+                                  ),
+                                  SizedBox(height: width * 0.03),
+
+                                  // Status Action Buttons
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: FilledButton(
+                                          style: FilledButton.styleFrom(
+                                            shape: RoundedRectangleBorder(
+                                              side: service.status == "active"
+                                                  ? BorderSide.none
+                                                  : const BorderSide(
+                                                      color: Colors.grey),
+                                              borderRadius: BorderRadius.circular(
+                                                  width * 0.02),
+                                            ),
+                                            backgroundColor:
+                                                service.status == "active"
+                                                    ? colorScheme.primary
+                                                    : Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: width * 0.02),
+                                          ),
+                                          onPressed: () {
+                                            if (service.status == "inactive") {
+                                              controller.showAlertDialogue(
+                                                  serviceId, "Active");
+                                            }
+                                          },
+                                          child: Text(
+                                            "Active",
+                                            style: textTheme.labelSmall!.copyWith(
+                                              fontSize: width * 0.028,
+                                              color: service.status == "active"
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: width * 0.04),
+                                      Expanded(
+                                        child: FilledButton(
+                                          style: FilledButton.styleFrom(
+                                            shape: RoundedRectangleBorder(
+                                              side: service.status == "inactive"
+                                                  ? BorderSide.none
+                                                  : const BorderSide(
+                                                      color: Colors.grey),
+                                              borderRadius: BorderRadius.circular(
+                                                  width * 0.02),
+                                            ),
+                                            backgroundColor:
+                                                service.status == "inactive"
+                                                    ? colorScheme.primary
+                                                    : Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: width * 0.02),
+                                          ),
+                                          onPressed: () {
+                                            if (service.status == "active") {
+                                              controller.showAlertDialogue(
+                                                  serviceId, "InActive");
+                                            }
+                                          },
+                                          child: Text(
+                                            "InActive",
+                                            style:
+                                                textTheme.labelMedium!.copyWith(
+                                              fontSize: width * 0.028,
+                                              color: service.status == "inactive"
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -174,10 +278,11 @@ class ServiceView extends GetView<ServiceController> {
           );
         }),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: colorScheme.primary,
           onPressed: () {
             Get.toNamed(Routes.ADD_EDIT_SERVICE);
           },
-          child: const Icon(Icons.add),
+          child: const Icon(Icons.add,color: Colors.white,),
         ),
       ),
     );

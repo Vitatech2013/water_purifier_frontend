@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:water_purifier/app/modules/add_edit_sale/controllers/add_edit_sale_controller.dart';
 import 'package:water_purifier/app/modules/product/models/product_response.dart';
@@ -9,6 +10,7 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+    final colorScheme = Theme.of(context).colorScheme;
     final loading = controller.loading.value;
     return Scaffold(
       appBar: AppBar(
@@ -29,121 +31,157 @@ class AddEditSaleView extends GetView<AddEditSaleController> {
           ),
         ),
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.blue,
+        backgroundColor: colorScheme.primary,
       ),
       body: Padding(
         padding: EdgeInsets.all(width * 0.04),
         child: SingleChildScrollView(
           child: Obx(
-            () => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: width * 0.03),
-                TextField(
-                  enabled: !loading,
-                  controller: controller.nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    hintText: 'Enter the customer name',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+            () {
+              if (controller.showLoading.value) {
+                return const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: LinearProgressIndicator()
                     ),
-                    errorText: controller.nameError.value.isNotEmpty
-                        ? controller.nameError.value
-                        : null,
-                  ),
-                ),
-                SizedBox(height: width * 0.04),
-                TextField(
-                  enabled: !loading,
-                  controller: controller.mobileNumberController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: 'Mobile Number',
-                    hintText: 'Enter the mobile number',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(width * 0.03),
+                  ],
+                );
+              }
+              else{
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: width * 0.03),
+                    TextField(
+                      enabled: !loading,
+                      controller: controller.nameController,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        hintText: 'Enter the customer name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        errorText: controller.nameError.value.isNotEmpty
+                            ? controller.nameError.value
+                            : null,
+                      ),
+                      onChanged: (value) {
+                        controller.validateName();
+                      },
                     ),
-                    errorText: controller.mobileNumberError.value.isNotEmpty
-                        ? controller.mobileNumberError.value
-                        : null,
-                  ),
-                ),
-                SizedBox(height: width * 0.04),
-                controller.userId.isEmpty
-                    ? _buildExpansionTile(
-                        title: 'Products',
-                        items: controller.products,
-                        groupValue:
-                            controller.selectedProduct.value?.productName ?? "",
-                        width: width,
-                        onChanged: (value) {
-                          final selectedProduct = controller.products
-                              .firstWhere(
-                                  (product) => product.productName == value);
-                          controller.productSelected(
-                              selectedProduct.productPrice.toString());
-                          controller.selectedProduct.value = selectedProduct;
-                          controller.selectedProductId.value =
-                              selectedProduct.id;
-                        },
-                        errorText: controller.productError.value,
-                      )
-                    : const LimitedBox(),
-                SizedBox(height: width * 0.04),
-                controller.userId.isEmpty
-                    ? TextField(
-                        enabled: !loading,
-                        controller: controller.productPriceController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Product price',
-                          hintText: 'Enter product price',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(width * 0.03),
-                          ),
-                          errorText: controller.productError.value.isNotEmpty
-                              ? controller.productError.value
-                              : null,
+                    SizedBox(height: width * 0.04),
+                    TextField(
+                      enabled: !loading,
+                      controller: controller.mobileNumberController,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: 'Mobile Number',
+                        hintText: 'Enter the mobile number',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(width * 0.03),
                         ),
-                        readOnly: true,
-                      )
-                    : const LimitedBox(),
-                SizedBox(height: width * 0.04),
-                controller.userId.isEmpty
-                    ? TextField(
-                        enabled: !loading,
-                        controller: controller.salePriceController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Sale price',
-                          hintText: 'Enter sale price',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(width * 0.03),
-                          ),
-                          errorText: controller.salePriceError.value.isNotEmpty
-                              ? controller.salePriceError.value
-                              : null,
-                        ),
-                      )
-                    : const LimitedBox(),
-                SizedBox(height: width * 0.04),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: loading ? Colors.grey : Colors.blue,
-                  ),
-                  onPressed: () {
+                        errorText: controller.mobileNumberError.value.isNotEmpty
+                            ? controller.mobileNumberError.value
+                            : null,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      onChanged: (value) {
+                        controller.validateMobileNumber();
+                      },
+                    ),
+                    SizedBox(height: width * 0.04),
                     controller.userId.isEmpty
-                        ? controller.saveSale()
-                        : controller.editPerson();
-                  },
-                  child: Text(
-                    controller.userId.isEmpty ? 'Save Sale' : 'Edit Person',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
+                        ? _buildExpansionTile(
+                      title: 'Products',
+                      items: controller.products,
+                      groupValue:
+                      controller.selectedProduct.value?.productName ?? "",
+                      width: width,
+                      onChanged: (value) {
+                        final selectedProduct = controller.products
+                            .firstWhere(
+                                (product) => product.productName == value);
+                        controller.productSelected(
+                            selectedProduct.productPrice.toString());
+                        controller.selectedProduct.value = selectedProduct;
+                        controller.selectedProductId.value =
+                            selectedProduct.id;
+                      },
+                      errorText: controller.productError.value,
+                    )
+                        : const LimitedBox(),
+                    SizedBox(height: width * 0.04),
+                    controller.userId.isEmpty
+                        ? TextField(
+                      enabled: !loading,
+                      controller: controller.productPriceController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Product price',
+                        hintText: 'Select the product above',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(width * 0.03),
+                        ),
+                        errorText: controller.productError.value.isNotEmpty
+                            ? controller.productError.value
+                            : null,
+                      ),
+                      readOnly: true,
+                    )
+                        : const LimitedBox(),
+                    SizedBox(height: width * 0.04),
+                    controller.userId.isEmpty
+                        ? TextField(
+                      enabled: !loading,
+                      controller: controller.salePriceController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        labelText: 'Sale price',
+                        hintText: 'Enter sale price',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(width * 0.03),
+                        ),
+                        errorText: controller.salePriceError.value.isNotEmpty
+                            ? controller.salePriceError.value
+                            : null,
+                      ),
+                      onChanged: (value) {
+                        controller.validateSalePrice();
+                      },
+                      onSubmitted: (value) {
+                        controller.userId.isEmpty
+                            ? controller.saveSale()
+                            : controller.editPerson();
+                      },
+                    )
+                        : const LimitedBox(),
+                    SizedBox(height: width * 0.04),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: loading ? Colors.grey : colorScheme.primary,
+                      ),
+                      onPressed: () {
+                        controller.userId.isEmpty
+                            ? controller.saveSale()
+                            : controller.editPerson();
+                      },
+                      child: Text(
+                        controller.userId.isEmpty ? 'Save Sale' : 'Edit Person',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                );
+              }
+            }
           ),
         ),
       ),

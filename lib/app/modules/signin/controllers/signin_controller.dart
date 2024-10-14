@@ -13,6 +13,7 @@ class SigninController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final loading = false.obs;
+  final isOwner = false.obs;
 
   @override
   void onClose() {
@@ -22,10 +23,10 @@ class SigninController extends GetxController {
   }
 
   String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Please enter your email';
     }
-    if (!GetUtils.isEmail(value)) {
+    if (!GetUtils.isEmail(value.trim())) {
       return 'Please enter a valid email';
     }
     return null;
@@ -67,12 +68,20 @@ class SigninController extends GetxController {
         loading.value=false;
         String responseBody = await response.stream.bytesToString();
         var decodedResponse = jsonDecode(responseBody);
-
+        print(decodedResponse["role"]);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         await prefs.setString('userEmail', emailController.text.trim());
+        if(decodedResponse["role"]=="owner"){
         await prefs.setString("ownerId", decodedResponse["_id"]);
+        isOwner.value=true;
+        }
+        else{
+          await prefs.setString("technicianId", decodedResponse["_id"]);
+          isOwner.value=false;
+        }
         await prefs.setString("token", decodedResponse["token"]);
+        await prefs.setString("role",decodedResponse["role"]);
         String email = emailController.text.trim();
         String username = email.split('@')[0];
         AppUtils.showSnackBar(title:'Welcome, $username!',message:'Hi $username, Here you can go!' );
